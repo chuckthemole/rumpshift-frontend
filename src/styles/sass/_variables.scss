@@ -1,0 +1,23 @@
+// _variables.scss
+// Brand colors and custom variables for Rumpus
+
+// Brand color palette
+$purple: #8A4D76;
+$pink: #FA7C91;
+$brown: #757763;
+$beige-light: #D0D1CD;
+$beige-lighter: #EFF0EB;
+
+// Bulma global variable overrides
+$family-sans-serif: '"Nunito", sans-serif';  // Note: needs quotes for font names with spaces
+$grey-dark: $brown;
+$grey-light: $beige-light;
+$primary: $purple;
+$link: $pink;
+$widescreen-enabled: false;
+$fullhd-enabled: false;
+
+// Bulma component variable overrides  
+$control-border-width: 2px;
+$input-border-color: transparent;
+$input-shadow: none;

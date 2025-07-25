@@ -1,0 +1,63 @@
+// Main styles file for Rumpus
+// https://bulma.io/documentation/customize/with-modular-sass/
+
+@charset "utf-8";
+
+// Import our variables first - @use must come before any other rules
+@use "variables" as *;
+
+// Import the full Bulma library to avoid missing placeholder errors
+@use "bulma/bulma" with ($family-primary: $family-sans-serif,
+    $grey-dark: $grey-dark,
+    $grey-light: $grey-light,
+    $primary: $primary,
+    $link: $link,
+    $widescreen-enabled: $widescreen-enabled,
+    $fullhd-enabled: $fullhd-enabled,
+    $control-border-width: $control-border-width,
+    $input-border-color: $input-border-color,
+    $input-shadow: $input-shadow);
+
+// Import Google Font after all @use/@forward statements
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+
+// Your custom styles can go here
+// You can use your brand colors from the variables file:
+// .my-custom-class {
+//   color: $primary;
+//   background-color: $beige-lighter;
+//   font-family: $family-sans-serif;
+// }
+
+// Previously used modular imports (commented out for reference):
+/*
+// Override global Sass variables from the /utilities folder
+@use "bulma/sass/utilities/_all.sass" as utilities with (
+  $family-primary: $family-sans-serif,
+  $grey-dark: $grey-dark,
+  $grey-light: $grey-light,
+  $primary: $primary,
+  $link: $link,
+  $widescreen-enabled: $widescreen-enabled,
+  $fullhd-enabled: $fullhd-enabled,
+  $control-border-width: $control-border-width
+);
+
+// Override Sass variables from the /form folder
+@use "bulma/sass/form/_all.sass" as form with (
+  $input-border-color: $input-border-color,
+  $input-shadow: $input-shadow
+);
+
+// Import the components you need using @forward
+@use "bulma/sass/base/_all.sass";
+@use "bulma/sass/elements/button";
+@use "bulma/sass/elements/container";
+@use "bulma/sass/elements/title";
+@use "bulma/sass/components/navbar";
+@use "bulma/sass/layout/hero";
+@use "bulma/sass/layout/section";
+
+// Import the themes so that all CSS variables have a value
+@use "bulma/sass/themes";
+*/
