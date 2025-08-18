@@ -10,11 +10,10 @@ const FlavorPumpDashboard = () => {
     const [progress, setProgress] = useState(40);
     const [liveValue, setLiveValue] = useState(990);
     const [level, setLevel] = useState(5);
-    const [checked, setChecked] = useState(false);
 
     const layout = [
         [
-            { component: <ToggleSwitch label={'anotherthing'} checked={checked} onChange={setChecked} />, colSpan: 6 },
+            { component: <ToggleSwitch label={'anotherthing'} />, colSpan: 6 },
             { component: <Slider label={'thisthing'} value={speed} onChange={setSpeed} />, colSpan: 6 },
         ],
         [

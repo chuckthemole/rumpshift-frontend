@@ -1,6 +1,9 @@
 import { createApiClient, setApi } from '@rumpushub/common-react'
+import { setEnv } from '@rumpushub/common-react'
+
 const api = createApiClient(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080');
 setApi(api); // inject the instance early
+setEnv(process.env.REACT_APP_ENV || 'development');
 
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
@@ -15,6 +18,7 @@ import { ErrorPage, Logout } from '@rumpushub/common-react'
 import '../generated/css/rumpus-styles.css';
 import '../generated/css/Spinner.css';
 import Tabs from './dashboards/tabs';
+import LandingPageBody from './buildshift/landing';
 
 const router = createBrowserRouter([
     {
@@ -28,7 +32,7 @@ const router = createBrowserRouter([
             },
             {
                 index: true, // default child for "/"
-                element: <Tabs />,
+                element: <LandingPageBody />,
                 // loader: landingLoader,
                 errorElement: <ErrorPage />
             },
