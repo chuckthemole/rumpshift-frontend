@@ -14,7 +14,7 @@ export default function App() {
                 <div className='columns is-centered'>
                     <div className='column'></div>
                     <div className='column is-three-fifths'>
-                        <FontSwitcherModal preview={true} />
+                        <FontSwitcherModal preview={true} secondaryFont={true} />
                         <Outlet />
                     </div>
                     <div className='column'></div>

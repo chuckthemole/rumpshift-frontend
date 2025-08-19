@@ -34,9 +34,24 @@ module.exports = {
     },
     plugins: [
         new webpack.DefinePlugin({
-            'process.env.REACT_APP_API_BASE_URL': JSON.stringify(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'),
-            'process.env.REACT_APP_ENV': JSON.stringify(process.env.REACT_APP_ENV || 'development'),
-            'process.env.REACT_APP_DEFAULT_FONT': JSON.stringify(process.env.REACT_APP_DEFAULT_FONT || '"Nunito", sans-serif')
+            'process.env.REACT_APP_API_BASE_URL': JSON.stringify(
+                process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'
+            ),
+            'process.env.REACT_APP_ENV': JSON.stringify(
+                process.env.REACT_APP_ENV || 'development'
+            ),
+            'process.env.REACT_APP_DEFAULT_FONT': JSON.stringify(
+                process.env.REACT_APP_DEFAULT_FONT || '"Nunito", sans-serif'
+            ),
+            'process.env.REACT_APP_SECONDARY_FONT': JSON.stringify(
+                process.env.REACT_APP_SECONDARY_FONT || '"Roboto Mono", monospace'
+            ),
+            'process.env.REACT_APP_BACKUP_PRIMARY_FONT': JSON.stringify(
+                process.env.REACT_APP_BACKUP_PRIMARY_FONT || '"Source Code Pro", monospace'
+            ),
+            'process.env.REACT_APP_BACKUP_SECONDARY_FONT': JSON.stringify(
+                process.env.REACT_APP_BACKUP_SECONDARY_FONT || '"Source Code Pro", monospace'
+            )
         }),
         new HtmlWebpackPlugin({
             template: './public/index.html', // make sure this file exists!

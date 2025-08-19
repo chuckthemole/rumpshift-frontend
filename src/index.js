@@ -9,6 +9,7 @@ import App from "./App";
 // import Admin from "./admin/admin";
 import { ErrorPage, Logout } from '@rumpushub/common-react'
 
+import '../generated/css/fonts.css';
 import '../generated/css/rumpus-styles.css';
 import '../generated/css/Spinner.css';
 import Tabs from './dashboards/tabs';
