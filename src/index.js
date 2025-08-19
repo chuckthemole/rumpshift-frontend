@@ -20,6 +20,9 @@ import '../generated/css/Spinner.css';
 import Tabs from './dashboards/tabs';
 import LandingPageBody from './buildshift/landing';
 
+const initialFont = process.env.REACT_APP_DEFAULT_FONT || '"Nunito", sans-serif';
+document.documentElement.style.setProperty('--primary-font', initialFont);
+
 const router = createBrowserRouter([
     {
         path: '/',
@@ -36,26 +39,11 @@ const router = createBrowserRouter([
                 // loader: landingLoader,
                 errorElement: <ErrorPage />
             },
-            // {
-            //     path: 'admin',
-            //     element: <Admin />,
-            //     loader: usersLoader,
-            //     errorElement: <ErrorPage />,
-            //     children: [
-            //         {
-            //             path: 'user/:userId',
-            //             element: <User />,
-            //             loader: userLoader,
-            //             errorElement: <ErrorPage />,
-            //         }
-            //     ]
-            // },
-            // {
-            //     path: 'user/:userId',
-            //     element: <User />,
-            //     loader: userLoader,
-            //     errorElement: <ErrorPage />,
-            // },
+            {
+                path: 'dashboard',
+                element: <Tabs />,
+                errorElement: <ErrorPage />,
+            },
             {
                 path: 'logout',
                 element: <Logout />,

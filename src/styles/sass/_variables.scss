@@ -10,6 +10,24 @@ $beige-lighter: #EFF0EB;
 
 // Bulma global variable overrides
 $family-sans-serif: '"Nunito", sans-serif';  // Note: needs quotes for font names with spaces
+
+// System fonts
+$family-sans-serif-system: "Helvetica", "Arial", sans-serif;
+$family-serif-system: "Georgia", "Times New Roman", serif;
+$family-monospace-system: "Courier New", Courier, monospace;
+
+// Google Fonts / web safe alternatives (quotes required for multi-word names)
+$family-nunito: "Nunito", sans-serif;      // your current one
+$family-roboto: "Roboto", sans-serif;
+$family-lato: "Lato", sans-serif;
+$family-montserrat: "Montserrat", sans-serif;
+$family-open-sans: "Open Sans", sans-serif;
+
+// Fun / display fonts (for headings, optional)
+$family-poppins: "Poppins", sans-serif;
+$family-rubik: "Rubik", sans-serif;
+$family-oswald: "Oswald", sans-serif;
+
 $grey-dark: $brown;
 $grey-light: $beige-light;
 $primary: $purple;

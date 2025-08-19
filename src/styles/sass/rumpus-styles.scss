@@ -7,7 +7,7 @@
 @use "variables" as *;
 
 // Import the full Bulma library to avoid missing placeholder errors
-@use "bulma/bulma" with ($family-primary: $family-sans-serif,
+@use "bulma/bulma" with ($family-primary: $family-monospace-system,
     $grey-dark: $grey-dark,
     $grey-light: $grey-light,
     $primary: $primary,
@@ -17,6 +17,10 @@
     $control-border-width: $control-border-width,
     $input-border-color: $input-border-color,
     $input-shadow: $input-shadow);
+
+body {
+    font-family: var(--primary-font);
+}
 
 // Import Google Font after all @use/@forward statements
 @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
