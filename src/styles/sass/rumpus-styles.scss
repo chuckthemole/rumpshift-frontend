@@ -1,12 +1,5 @@
-// Main styles file for Rumpus
-// https://bulma.io/documentation/customize/with-modular-sass/
-
-@charset "utf-8";
-
-// Import our variables first - @use must come before any other rules
 @use "variables" as *;
 
-// Import the full Bulma library to avoid missing placeholder errors
 @use "bulma/bulma" with ($family-primary: $family-monospace-system,
     $grey-dark: $grey-dark,
     $grey-light: $grey-light,
@@ -20,7 +13,20 @@
 
 body {
     font-family: var(--primary-font), var(--secondary-font), var(--backup-primary-font), var(--backup-secondary-font);
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
+
+// Example: use CSS variable for buttons
+.button.is-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+a {
+    color: var(--link-color);
+}
+
 
 // Import Google Font after all @use/@forward statements
 @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');

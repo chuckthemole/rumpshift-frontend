@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { Footer, Header, Section, RumpusQuillForm, RumpusQuill, AuthRoot, FontSwitcherModal } from '@rumpushub/common-react'
+import { Footer, Header, Section, RumpusQuillForm, RumpusQuill, AuthRoot, FontSettingsModal, ColorSettingsModal } from '@rumpushub/common-react'
 
 export default function App() {
 
@@ -14,7 +14,8 @@ export default function App() {
                 <div className='columns is-centered'>
                     <div className='column'></div>
                     <div className='column is-three-fifths'>
-                        <FontSwitcherModal preview={true} secondaryFont={true} />
+                        <FontSettingsModal preview={true} secondaryFont={true} />
+                        <ColorSettingsModal />
                         <Outlet />
                     </div>
                     <div className='column'></div>
