@@ -1,10 +1,4 @@
-import { createApiClient, setApi } from '@rumpushub/common-react'
-import { setEnv } from '@rumpushub/common-react'
-
-const api = createApiClient(process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080');
-setApi(api); // inject the instance early
-setEnv(process.env.REACT_APP_ENV || 'development');
-
+import "./setupEnv";
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
@@ -19,9 +13,6 @@ import '../generated/css/rumpus-styles.css';
 import '../generated/css/Spinner.css';
 import Tabs from './dashboards/tabs';
 import LandingPageBody from './buildshift/landing';
-
-const initialFont = process.env.REACT_APP_DEFAULT_FONT || '"Nunito", sans-serif';
-document.documentElement.style.setProperty('--primary-font', initialFont);
 
 const router = createBrowserRouter([
     {
