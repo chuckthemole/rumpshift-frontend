@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { Footer, Header, Section, RumpusQuillForm, RumpusQuill, AuthRoot, FontSettingsModal, ColorSettingsModal } from '@rumpushub/common-react'
+import { Footer, Header, Section, RumpusQuillForm, RumpusQuill, AuthRoot, FontSettingsModal, ColorSettingsModal } from '@rumpushub/common-react';
+import NotionConsoleButton from './buildshift/buttons/notion_console_button';
 
 export default function App() {
 
@@ -10,7 +11,7 @@ export default function App() {
     return (
         <>
             <AuthRoot>
-                <Header header_path={'/view/header'} />
+                <Header header_path={'/view/header'} navbarItemsEnd={ [<NotionConsoleButton />] } />
                 <div className='columns is-centered'>
                     <div className='column'></div>
                     <div className='column is-three-fifths'>

@@ -13,6 +13,7 @@ import '../generated/css/fonts.css';
 import '../generated/css/rumpus-styles.css';
 import '../generated/css/Spinner.css';
 import Tabs from './dashboards/tabs';
+import NotionTasks from "./buildshift/notion/notion_tasks";
 import LandingPageBody from './buildshift/landing';
 
 const router = createBrowserRouter([
@@ -32,8 +33,13 @@ const router = createBrowserRouter([
                 errorElement: <ErrorPage />
             },
             {
-                path: 'dashboard',
+                path: 'admin',
                 element: <Tabs />,
+                errorElement: <ErrorPage />,
+            },
+            {
+                path: 'notion_console',
+                element: <NotionTasks />,
                 errorElement: <ErrorPage />,
             },
             {
