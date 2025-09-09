@@ -1,7 +1,7 @@
 const React = require('react');
 const ReactDOM = require('react-dom/client');
 
-import FlavorPump from './flavor_pump';
+import FlavorPumpDashboard from './flavor_pump';
 import Home from './tab_home';
 
 export default function Tabs() {
@@ -32,7 +32,7 @@ export default function Tabs() {
                         </a>
                     </li>
                     <li className={`dashboardTab ${dashboardActive && is_active}`}>
-                        <a onClick={ ()=> { clear(); setDashboard(true); setActiveWindow(<FlavorPump />); } }>
+                        <a onClick={ ()=> { clear(); setDashboard(true); setActiveWindow(<FlavorPumpDashboard />); } }>
                             <span>Flavor Pump</span>
                         </a>
                     </li>
