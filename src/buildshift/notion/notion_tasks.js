@@ -22,7 +22,7 @@ export default function NotionTasks() {
             try {
                 const api = getApi();
                 const { data } = await api.get(
-                    "/notion-api/integrations/notion/database/1a4b11ab09b344d59cd654016930ccf0"
+                    "/notion-api/integrations/notion/projectManagementIntegration/database/1a4b11ab09b344d59cd654016930ccf0"
                 );
                 const parsed = parseNotionTasks(data);
                 setAllTasks(parsed);

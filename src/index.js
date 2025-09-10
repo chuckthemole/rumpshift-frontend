@@ -15,6 +15,7 @@ import '../generated/css/Spinner.css';
 import Tabs from './dashboards/tabs';
 import NotionTasks from "./buildshift/notion/notion_tasks";
 import LandingPageBody from './buildshift/landing';
+import Leaderboard from "./buildshift/notion/leaderboard";
 
 const router = createBrowserRouter([
     {
@@ -40,6 +41,11 @@ const router = createBrowserRouter([
             {
                 path: 'notion_console',
                 element: <NotionTasks />,
+                errorElement: <ErrorPage />,
+            },
+            {
+                path: 'notion_leader',
+                element: <Leaderboard />,
                 errorElement: <ErrorPage />,
             },
             {

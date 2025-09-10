@@ -71,4 +71,80 @@ function parseNotionTasks(notionResponse) {
     });
 }
 
-export { parseNotionTasks };
+/**
+ * Parse leaderboard entries from a Notion database response.
+ *
+ * Maps Notion's nested property structure into a normalized
+ * leaderboard entry object that is easier for React components to consume.
+ *
+ * Expected fields:
+ *  - User (title property)
+ *  - Count (number property)
+ *  - Duration (number property, seconds)
+ *  - Start Timestamp (date property)
+ *  - End Timestamp (date property)
+ *  - Notes (rich_text property)
+ *
+ * @param {Object} notionResponse - Raw JSON response from the Notion API.
+ * @returns {Array} Parsed leaderboard entries with normalized fields.
+ */
+function parseLeaderboardData(notionResponse) {
+    if (!notionResponse || !Array.isArray(notionResponse.results)) {
+        console.warn("parseLeaderboardData: Invalid Notion response", notionResponse);
+        return [];
+    }
+
+    return notionResponse.results.map((page) => {
+        const props = page.properties || {};
+
+        // Debug: log the raw page properties
+        console.log("Leaderboard page props:", props);
+
+        const rawDuration = props.Duration?.number ?? 0;
+        const safeDuration =
+            rawDuration > 0 && rawDuration < 86400 * 365 ? rawDuration : 0;
+
+        // Start/End Timestamps
+        let startRaw = null;
+        let endRaw = null;
+
+        if (props["Start Timestamp"]?.date) {
+            startRaw = props["Start Timestamp"].date.start || null;
+        }
+        if (props["End Timestamp"]?.date) {
+            endRaw = props["End Timestamp"].date.start || null;
+        }
+
+        // Debug: log raw timestamps
+        console.log("Raw start/end:", startRaw, endRaw);
+
+        const startTimestamp =
+            startRaw && !startRaw.startsWith("1970")
+                ? new Date(startRaw).toLocaleString()
+                : new Date(page.created_time).toLocaleString(); // fallback to created_time
+
+        const endTimestamp =
+            endRaw && !endRaw.startsWith("1970")
+                ? new Date(endRaw).toLocaleString()
+                : new Date(page.last_edited_time).toLocaleString(); // fallback to last_edited_time
+
+
+        const notes =
+            props.Notes?.rich_text
+                ?.map((t) => t.plain_text)
+                .join(" ")
+                .trim() || "";
+
+        return {
+            id: page.id || null,
+            user: props.User?.title?.[0]?.plain_text?.trim() || "Unknown",
+            count: props.Count?.number ?? 0,
+            duration: safeDuration,
+            startTimestamp,
+            endTimestamp,
+            notes,
+        };
+    });
+}
+
+export { parseNotionTasks, parseLeaderboardData };
