@@ -1,16 +1,69 @@
-import React, { useState } from "react";
-import { TasksTemplate, ToggleSwitch, ControlButtonRetro } from "@rumpushub/common-react";
-
-// Dummy tasks (replace later with data from Notion API)
-const dummyTasks = [
-    { id: "1", title: "Finish quarterly report", description: "Compile sales data and finalize the Q3 report.", assignedTo: { id: "u1", name: "Alice Johnson" }, completed: false },
-    { id: "2", title: "Update website copy", description: "Revise the landing page text for the fall campaign.", assignedTo: { id: "u2", name: "Bob Smith" }, completed: true },
-    { id: "3", title: "Team meeting prep", description: "Create agenda and slides for Monday’s sync.", assignedTo: { id: "u1", name: "Alice Johnson" }, completed: false },
-    { id: "4", title: "Customer follow-up", description: "Send follow-up emails to leads from the trade show.", assignedTo: { id: "u3", name: "Carla Diaz" }, completed: false },
-];
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import {
+    TasksTemplate,
+    ToggleSwitch,
+    ControlButtonRetro,
+    getApi,
+    LOGGER,
+} from "@rumpushub/common-react";
+import { parseNotionTasks } from "./utils";
+import dummyTasks from "./test_data/test_notion_tasks";
 
 export default function NotionTasks() {
-    const [tasks, setTasks] = useState(dummyTasks);
+    const [allTasks, setAllTasks] = useState([]); // all tasks from API
+    const [visibleTasks, setVisibleTasks] = useState([]); // tasks shown
+    const [page, setPage] = useState(1);
+    const loaderRef = useRef(null);
+
+    const PAGE_SIZE = 10;
+
+    useEffect(() => {
+        async function fetchTasks() {
+            try {
+                const api = getApi();
+                const { data } = await api.get(
+                    "/notion-api/integrations/notion/database/1a4b11ab09b344d59cd654016930ccf0"
+                );
+                const parsed = parseNotionTasks(data);
+                setAllTasks(parsed);
+                setVisibleTasks(parsed.slice(0, PAGE_SIZE)); // initial 10
+            } catch (err) {
+                LOGGER.error("Failed to fetch tasks from Notion API:", err);
+                setAllTasks(dummyTasks);
+                setVisibleTasks(dummyTasks.slice(0, PAGE_SIZE));
+            }
+        }
+
+        fetchTasks();
+    }, []);
+
+    // Load more when "loader" div enters viewport
+    const loadMore = useCallback(() => {
+        setPage((prev) => {
+            const nextPage = prev + 1;
+            setVisibleTasks(allTasks.slice(0, nextPage * PAGE_SIZE));
+            return nextPage;
+        });
+    }, [allTasks]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) {
+                    loadMore();
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => {
+            if (loaderRef.current) observer.unobserve(loaderRef.current);
+        };
+    }, [loadMore]);
 
     const currentUser = { id: "u1", name: "Alice Johnson" };
     const isAdmin = true;
@@ -19,11 +72,11 @@ export default function NotionTasks() {
         <div className="section">
             <h1 className="title">Notion Tasks</h1>
             <TasksTemplate
-                tasks={tasks}
+                tasks={visibleTasks}
                 currentUser={currentUser}
                 isAdmin={isAdmin}
                 layout="horizontal"
-                onTasksChange={setTasks} // keeps top-level state in sync
+                onTasksChange={setVisibleTasks}
                 allowReopen={true}
                 taskUiElements={(task) => [
                     {
@@ -38,9 +91,12 @@ export default function NotionTasks() {
                     {
                         props: { label: "Delete Task" },
                         action: TasksTemplate.builtInActions.deleteTask,
-                    }
+                    },
                 ]}
             />
+
+            {/* Infinite scroll loader sentinel */}
+            <div ref={loaderRef} style={{ height: "40px" }} />
         </div>
     );
 }
