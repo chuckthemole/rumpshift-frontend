@@ -1,5 +1,8 @@
 @use "variables" as *;
 
+// --------------------
+// Bulma with your overrides
+// --------------------
 @use "bulma/bulma" with ($family-primary: $family-monospace-system,
     $grey-dark: $grey-dark,
     $grey-light: $grey-light,
@@ -11,63 +14,103 @@
     $input-border-color: $input-border-color,
     $input-shadow: $input-shadow);
 
+// --------------------
+// Global body and text
+// --------------------
 body {
     font-family: var(--primary-font), var(--secondary-font), var(--backup-primary-font), var(--backup-secondary-font);
     background-color: var(--background-color);
     color: var(--text-color);
 }
 
-// Example: use CSS variable for buttons
+// --------------------
+// Buttons using CSS variables (reactive)
+// --------------------
 .button.is-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--button-background-color);
+    border-color: var(--button-background-color);
+    color: var(--button-text-color);
 }
 
+// You can also create secondary button variant reactive
+.button.is-secondary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    color: var(--button-text-color);
+}
+
+// --------------------
+// Links
+// --------------------
 a {
     color: var(--link-color);
+
+    &:hover {
+        color: var(--link-hover, var(--link-color)); // optional reactive hover color
+    }
+}
+
+// --------------------
+// Navbar
+// --------------------
+.navbar {
+  background-color: var(--navbar-background-color) !important;
+  color: var(--navbar-text-color) !important;
+
+  a.navbar-item {
+    color: var(--navbar-text-color) !important;
+
+    &:hover {
+      color: var(--link-hover, var(--navbar-text-color)) !important;
+    }
+  }
 }
 
 
-// Import Google Font after all @use/@forward statements
+// --------------------
+// Footer
+// --------------------
+.footer {
+    background-color: var(--footer-background-color);
+    color: var(--footer-text-color);
+}
+
+// --------------------
+// Sidebar
+// --------------------
+.sidebar {
+    background-color: var(--sidebar-background-color);
+    color: var(--sidebar-text-color);
+}
+
+// --------------------
+// Cards
+// --------------------
+.card {
+    background-color: var(--card-background-color);
+    color: var(--card-text-color);
+
+    .card-header {
+        background-color: var(--card-header-background-color);
+    }
+}
+
+// --------------------
+// Inputs
+// --------------------
+input,
+textarea,
+select {
+    background-color: var(--input-background-color, #fff);
+    border-color: var(--input-border-color, #ccc);
+    color: var(--input-text-color, #363636);
+
+    &::placeholder {
+        color: var(--input-placeholder, #aaa);
+    }
+}
+
+// --------------------
+// Import Google Fonts
+// --------------------
 @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
-
-// Your custom styles can go here
-// You can use your brand colors from the variables file:
-// .my-custom-class {
-//   color: $primary;
-//   background-color: $beige-lighter;
-//   font-family: $family-sans-serif;
-// }
-
-// Previously used modular imports (commented out for reference):
-/*
-// Override global Sass variables from the /utilities folder
-@use "bulma/sass/utilities/_all.sass" as utilities with (
-  $family-primary: $family-sans-serif,
-  $grey-dark: $grey-dark,
-  $grey-light: $grey-light,
-  $primary: $primary,
-  $link: $link,
-  $widescreen-enabled: $widescreen-enabled,
-  $fullhd-enabled: $fullhd-enabled,
-  $control-border-width: $control-border-width
-);
-
-// Override Sass variables from the /form folder
-@use "bulma/sass/form/_all.sass" as form with (
-  $input-border-color: $input-border-color,
-  $input-shadow: $input-shadow
-);
-
-// Import the components you need using @forward
-@use "bulma/sass/base/_all.sass";
-@use "bulma/sass/elements/button";
-@use "bulma/sass/elements/container";
-@use "bulma/sass/elements/title";
-@use "bulma/sass/components/navbar";
-@use "bulma/sass/layout/hero";
-@use "bulma/sass/layout/section";
-
-// Import the themes so that all CSS variables have a value
-@use "bulma/sass/themes";
-*/

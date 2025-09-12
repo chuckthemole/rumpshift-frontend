@@ -42,7 +42,27 @@ $input-shadow: none;
 
 :root {
     --primary-color: #{$primary};
+    --secondary-color: #F5A623;
     --link-color: #{$link};
-    --background-color: #ffffff; // default page background
-    --text-color: #363636; // default text
+    --text-color: #363636;
+    --heading-color: #1A1A1A;
+    --background-color: #ffffff;
+    --muted-color: #7A7A7A;
+
+    --success-color: #48C774;
+    --warning-color: #FFDD57;
+    --danger-color: #F14668;
+    --info-color: #209CEE;
+
+    --navbar-background-color: #ffffff;
+    --navbar-text-color: #363636;
+    --footer-background-color: #F8F8F8;
+    --footer-text-color: #363636;
+    --sidebar-background-color: #FAFAFA;
+    --sidebar-text-color: #363636;
+    --card-background-color: #FFFFFF;
+    --card-header-background-color: #F5F5F5;
+    --card-text-color: #363636;
+    --button-background-color: #8A4D76;
+    --button-text-color: #FFFFFF;
 }
