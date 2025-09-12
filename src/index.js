@@ -12,6 +12,7 @@ import { ErrorPage, Logout } from '@rumpushub/common-react'
 import '../generated/css/fonts.css';
 import '../generated/css/rumpus-styles.css';
 import '../generated/css/Spinner.css';
+import '../generated/css/sticky-footer.css';
 import Tabs from './dashboards/tabs';
 import NotionTasks from "./buildshift/notion/notion_tasks";
 import LandingPageBody from './buildshift/landing';

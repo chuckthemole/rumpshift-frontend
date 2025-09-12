@@ -1,29 +1,44 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { Footer, Header, Section, RumpusQuillForm, RumpusQuill, AuthRoot, FontSettingsModal, ColorSettingsModal } from '@rumpushub/common-react';
+import {
+    Footer,
+    Header,
+    Section,
+    RumpusQuillForm,
+    RumpusQuill,
+    AuthRoot,
+    useColorSettings
+} from '@rumpushub/common-react';
+
 import NotionConsoleButton from './buildshift/buttons/notion_console_button';
 import LeaderboardButton from './buildshift/buttons/leaderboard_button';
 
 export default function App() {
+    const { initColors } = useColorSettings();
 
-    console.log('rumpus React version:', React.version);
+    useEffect(() => {
+        initColors();
+    }, []);
 
     return (
-        <>
-            <AuthRoot>
-                <Header header_path={'/view/header'} navbarItemsEnd={ [<NotionConsoleButton />, <LeaderboardButton />] } />
-                <div className='columns is-centered'>
+        <div className="app-container">
+            <AuthRoot className="app-inner">
+                <Header
+                    header_path={'/view/header'}
+                    navbarItemsEnd={[<NotionConsoleButton />, <LeaderboardButton />]}
+                />
+
+                <main className="app-content columns is-centered">
                     <div className='column'></div>
                     <div className='column is-three-fifths'>
-                        <FontSettingsModal preview={true} secondaryFont={true} />
-                        <ColorSettingsModal />
                         <Outlet />
                     </div>
                     <div className='column'></div>
-                </div>
+                </main>
+
                 <Footer footer_path={"/view/footer"} />
             </AuthRoot>
-        </>
-    )
+        </div>
+    );
 }
