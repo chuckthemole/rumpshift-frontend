@@ -37,6 +37,9 @@ module.exports = {
             'process.env.REACT_APP_API_BASE_URL': JSON.stringify(
                 process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080'
             ),
+            'process.env.REACT_APP_API_RUMPSHIFT_URL': JSON.stringify(
+                process.env.REACT_APP_API_RUMPSHIFT_URL || 'http://localhost:8000'
+            ),
             'process.env.REACT_APP_ENV': JSON.stringify(
                 process.env.REACT_APP_ENV || 'development'
             ),
