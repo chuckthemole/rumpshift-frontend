@@ -4,12 +4,6 @@
 // Bulma with your overrides
 // --------------------
 @use "bulma/bulma" with ($family-primary: $family-monospace-system,
-    $grey-dark: $grey-dark,
-    $grey-light: $grey-light,
-    $primary: $primary,
-    $link: $link,
-    $widescreen-enabled: $widescreen-enabled,
-    $fullhd-enabled: $fullhd-enabled,
     $control-border-width: $control-border-width,
     $input-border-color: $input-border-color,
     $input-shadow: $input-shadow);
@@ -18,35 +12,37 @@
 // Global body and text
 // --------------------
 body {
-    font-family: var(--primary-font), var(--secondary-font), var(--backup-primary-font), var(--backup-secondary-font);
-    background-color: var(--background-color);
-    color: var(--text-color);
+    font-family: var(--primary-font, $family-sans-serif),
+        var(--secondary-font, $family-sans-serif-system),
+        var(--backup-primary-font, $family-nunito),
+        var(--backup-secondary-font, $family-roboto);
+    background-color: var(--background-color, var(--missing-debug-var));
+    color: var(--text-color, var(--missing-debug-var));
 }
 
 // --------------------
 // Buttons using CSS variables (reactive)
 // --------------------
 .button.is-primary {
-    background-color: var(--button-background-color);
-    border-color: var(--button-background-color);
-    color: var(--button-text-color);
+    background-color: var(--button-background-color, var(--missing-debug-var));
+    border-color: var(--button-background-color, var(--missing-debug-var));
+    color: var(--button-text-color, var(--missing-debug-var));
 }
 
-// You can also create secondary button variant reactive
 .button.is-secondary {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
-    color: var(--button-text-color);
+    background-color: var(--secondary-color, var(--missing-debug-var));
+    border-color: var(--secondary-color, var(--missing-debug-var));
+    color: var(--button-text-color, var(--missing-debug-var));
 }
 
 // --------------------
 // Links
 // --------------------
 a {
-    color: var(--link-color);
+    color: var(--link-color, var(--missing-debug-var));
 
     &:hover {
-        color: var(--link-hover, var(--link-color)); // optional reactive hover color
+        color: var(--link-hover, var(--link-color, var(--missing-debug-var)));
     }
 }
 
@@ -54,46 +50,75 @@ a {
 // Navbar
 // --------------------
 .navbar {
-  background-color: var(--navbar-background-color) !important;
-  color: var(--navbar-text-color) !important;
+    background-color: var(--navbar-background-color, var(--missing-debug-var));
+    color: var(--navbar-text-color, var(--missing-debug-var));
 
-  a.navbar-item {
-    color: var(--navbar-text-color) !important;
+    .navbar-item {
+        color: var(--navbar-text-color, var(--missing-debug-var));
 
-    &:hover {
-      color: var(--link-hover, var(--navbar-text-color)) !important;
+        &:hover {
+            color: var(--link-hover, var(--navbar-text-color, var(--missing-debug-var)));
+        }
     }
-  }
-}
 
+    .navbar-burger {
+        color: var(--navbar-text-color, var(--missing-debug-var));
+    }
+
+    .navbar-link::after {
+        border-color: var(--navbar-text-color, var(--missing-debug-var));
+    }
+}
 
 // --------------------
 // Footer
 // --------------------
 .footer {
-    background-color: var(--footer-background-color);
-    color: var(--footer-text-color);
+    background-color: var(--footer-background-color, var(--missing-debug-var));
+    color: var(--footer-text-color, var(--missing-debug-var));
 }
 
 // --------------------
 // Sidebar
 // --------------------
 .sidebar {
-    background-color: var(--sidebar-background-color);
-    color: var(--sidebar-text-color);
+    background-color: var(--sidebar-background-color, var(--missing-debug-var));
+    color: var(--sidebar-text-color, var(--missing-debug-var));
 }
 
 // --------------------
 // Cards
 // --------------------
 .card {
-    background-color: var(--card-background-color);
-    color: var(--card-text-color);
+    background-color: var(--card-background-color, var(--missing-debug-var));
+    color: var(--card-text-color, var(--missing-debug-var));
 
     .card-header {
-        background-color: var(--card-header-background-color);
+        background-color: var(--card-header-background-color, var(--missing-debug-var));
     }
 }
+
+// --------------------
+// Tabs
+// --------------------
+.tabs.is-boxed {
+    li a {
+        color: var(--muted-color);
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    li.is-active a {
+        background-color: var(--card-header-background-color);
+        color: var(--card-text-color);
+        border-radius: 4px 4px 0 0; // matches Bulma's boxed style
+    }
+
+    li a:hover {
+        color: var(--primary-color);
+    }
+}
+
 
 // --------------------
 // Inputs
@@ -102,8 +127,8 @@ input,
 textarea,
 select {
     background-color: var(--input-background-color, #fff);
-    border-color: var(--input-border-color, #ccc);
-    color: var(--input-text-color, #363636);
+    border-color: var(--input-border-color, var(--missing-debug-var));
+    color: var(--input-text-color, var(--missing-debug-var));
 
     &::placeholder {
         color: var(--input-placeholder, #aaa);
@@ -113,4 +138,4 @@ select {
 // --------------------
 // Import Google Fonts
 // --------------------
-@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap');

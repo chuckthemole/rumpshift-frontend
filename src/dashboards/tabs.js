@@ -28,29 +28,28 @@ export default function Tabs() {
         <>
             <div className="tabs is-boxed">
                 <ul>
-                    <li className={`homeTab ${homeActive && is_active}`}>
+                    <li className={homeActive ? 'is-active' : ''}>
                         <a onClick={() => { clear(); setHomeActive(true); setActiveWindow(<Home />); }}>
                             <span>Home</span>
                         </a>
                     </li>
-                    <li className={`dashboardTab ${dashboardActive && is_active}`}>
+                    <li className={dashboardActive ? 'is-active' : ''}>
                         <a onClick={() => { clear(); setDashboardActive(true); setActiveWindow(<FlavorPumpDashboard />); }}>
                             <span>Flavor Pump</span>
                         </a>
                     </li>
-                    <li className={`buildshiftTab ${machineTaskManagerActive && is_active}`}>
+                    <li className={machineTaskManagerActive ? 'is-active' : ''}>
                         <a onClick={() => { clear(); setMachineTaskManagerActive(true); setActiveWindow(<MachineTaskManager />); }}>
                             <span>Machine Task Manager</span>
                         </a>
                     </li>
-                    <li className={`buildshiftTab ${settingsActive && is_active}`}>
+                    <li className={settingsActive ? 'is-active' : ''}>
                         <a onClick={() => { clear(); setSettingsActive(true); setActiveWindow(<AdminSiteSettingsDashboard />); }}>
                             <span>Site Settings</span>
                         </a>
                     </li>
                 </ul>
             </div>
-
             <div className='is-centered has-background-light box'>{activeWindow}</div>
         </>
     )
