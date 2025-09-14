@@ -25,7 +25,7 @@ export default function App() {
         <div className="app-container">
             <AuthRoot className="app-inner">
                 <Header
-                    header_path={'/view/header'}
+                    header_path={'/view_bs/header'}
                     navbarItemsEnd={[<NotionConsoleButton />, <LeaderboardButton />]}
                 />
 
