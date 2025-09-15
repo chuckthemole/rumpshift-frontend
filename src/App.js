@@ -26,7 +26,7 @@ export default function App() {
             <AuthRoot className="app-inner">
                 <Header
                     header_path={'/view_bs/header'}
-                    navbarItemsEnd={[<NotionConsoleButton />, <LeaderboardButton />]}
+                    // navbarItemsEnd={[<NotionConsoleButton />, <LeaderboardButton />]}
                 />
 
                 <main className="app-content columns is-centered">
