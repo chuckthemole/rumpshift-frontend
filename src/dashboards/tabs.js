@@ -4,7 +4,7 @@ const ReactDOM = require('react-dom/client');
 import Home from './tab_home';
 import FlavorPumpDashboard from './flavor_pump';
 import MachineTaskManager from './machine_task_manager';
-import { AdminSiteSettingsDashboard } from '@rumpushub/common-react';
+import { AdminSiteSettingsDashboard, EntityTaskManager } from '@rumpushub/common-react';
 
 export default function Tabs() {
 
@@ -39,7 +39,7 @@ export default function Tabs() {
                         </a>
                     </li>
                     <li className={machineTaskManagerActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setMachineTaskManagerActive(true); setActiveWindow(<MachineTaskManager />); }}>
+                        <a onClick={() => { clear(); setMachineTaskManagerActive(true); setActiveWindow(<EntityTaskManager />); }}>
                             <span>Machine Task Manager</span>
                         </a>
                     </li>
