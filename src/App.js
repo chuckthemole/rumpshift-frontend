@@ -37,7 +37,7 @@ export default function App() {
                     <div className='column'></div>
                 </main>
 
-                <Footer footer_path={"/view/footer"} />
+                <Footer footer_path={"/view_bs/footer"} />
             </AuthRoot>
         </div>
     );

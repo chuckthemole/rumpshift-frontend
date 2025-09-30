@@ -1,18 +1,44 @@
-import { createApiClient, setApi, setNamedApi, setEnv } from '@rumpushub/common-react';
+import { createApiClient, setApi, setNamedApi, setLoggingEnv } from '@rumpushub/common-react';
+import { LOGGER } from '@rumpushub/common-react';
 
 // ----------------------------
 // Setup API Clients
 // ----------------------------
 
-// MAIN API (backward compatible)
-const baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
-const baseAPI = createApiClient(baseURL);
-setApi(baseAPI);
+// Determine if we're in production
+const isProduction = process.env.REACT_APP_ENV === 'production';
 
-// Rumpshift API (named API)
-const rumpshiftURL = process.env.REACT_APP_API_RUMPSHIFT_URL || 'http://localhost:8080';
-const rumpshiftAPI = createApiClient(rumpshiftURL);
-setNamedApi('RUMPSHIFT_API', rumpshiftAPI);
+// Set base URLs based on environment
+const baseURL = isProduction
+    ? process.env.REACT_APP_API_BASE_URL_PRODUCTION
+    : process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+
+const rumpshiftURL = isProduction
+    ? process.env.REACT_APP_API_RUMPSHIFT_URL_PRODUCTION
+    : process.env.REACT_APP_API_RUMPSHIFT_URL || 'http://localhost:8080';
+
+try {
+    const baseAPI = createApiClient(baseURL);
+    setApi(baseAPI);
+
+    const rumpshiftAPI = createApiClient(rumpshiftURL);
+    setNamedApi('RUMPSHIFT_API', rumpshiftAPI);
+
+    LOGGER.debug('APIs set up successfully');
+} catch (err) {
+    console.error('Failed to initialize API clients:', err);
+    alert(
+        'Failed to initialize API clients:\n' +
+        (err?.message || JSON.stringify(err))
+    );
+
+    // Optionally, throw again to stop further execution
+    throw err;
+}
+
+
+LOGGER.debug('Main API base URL:', baseURL);
+LOGGER.debug('Rumpshift API base URL:', rumpshiftURL);
 
 /**
  * NOTE:
@@ -28,7 +54,7 @@ setNamedApi('RUMPSHIFT_API', rumpshiftAPI);
 // ----------------------------
 // Set environment
 // ----------------------------
-setEnv(process.env.REACT_APP_ENV || 'development');
+setLoggingEnv(process.env.REACT_APP_ENV || 'development');
 
 // ----------------------------
 // Set fonts safely for Webpack

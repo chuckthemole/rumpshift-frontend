@@ -14,6 +14,7 @@ import Tabs from './dashboards/tabs';
 import NotionTasks from "./buildshift/notion/notion_tasks";
 import LandingPageBody from './buildshift/landing';
 import Leaderboard from "./buildshift/notion/leaderboard";
+import BugReportForm from "./buildshift/bug_report_form";
 
 const router = createBrowserRouter([
     {
@@ -44,6 +45,11 @@ const router = createBrowserRouter([
             {
                 path: 'notion_leader',
                 element: <Leaderboard />,
+                errorElement: <ErrorPage />,
+            },
+            {
+                path: 'bug_report',
+                element: <BugReportForm />,
                 errorElement: <ErrorPage />,
             },
             {
