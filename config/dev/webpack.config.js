@@ -16,7 +16,7 @@ module.exports = {
     entry: {
         app: './src/index.js',
         // quill: './common/rumpus_quill.js'
-        quill: '@rumpushub/common-react/dist/components/rumpus_quill'
+        // quill: '@rumpushub/common-react/dist/components/rumpus_quill'
     },
     devtool: 'source-map',
     cache: true,

@@ -1,7 +1,8 @@
 const React = require('react');
 const ReactDOM = require('react-dom/client');
 
-import RumpusQuill from '@rumpushub/common-react/dist/components/rumpus_quill';
+// import RumpusQuill from '@rumpushub/common-react/dist/components/rumpus_quill';
+import RumpusQuill from '@rumpushub/common-react';
 
 export default function Home() {
 

@@ -1,3 +1,8 @@
+/**
+ * 🔧 Dummy task data for development and testing.
+ * These tasks are hardcoded and do not come from any API or database.
+ * Replace or remove once real backend integration is available.
+ */
 const dummyTasks = [
     {
         id: "1",

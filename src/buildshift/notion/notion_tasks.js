@@ -3,32 +3,57 @@ import {
     TasksTemplate,
     ToggleSwitch,
     ControlButtonRetro,
-    getApi,
     LOGGER,
+    ApiPersistence
 } from "@rumpushub/common-react";
-import { parseNotionTasks } from "./utils";
 import dummyTasks from "./test_data/test_notion_tasks";
+import { parseNotionTasks } from "./utils";
 
 export default function NotionTasks() {
-    const [allTasks, setAllTasks] = useState([]); // all tasks from API
-    const [visibleTasks, setVisibleTasks] = useState([]); // tasks shown
+    const [allTasks, setAllTasks] = useState([]);
+    const [visibleTasks, setVisibleTasks] = useState([]);
     const [page, setPage] = useState(1);
     const loaderRef = useRef(null);
 
     const PAGE_SIZE = 10;
 
+    // Create persistence instance for this API endpoint
+    const notionTasksPersistence = ApiPersistence(
+        "/notion-api/integrations/notion/projectManagementIntegration/database"
+        // "MAIN" // optional — defaults to MAIN
+    );
+
     useEffect(() => {
         async function fetchTasks() {
             try {
-                const api = getApi();
-                const { data } = await api.get(
-                    "/notion-api/integrations/notion/projectManagementIntegration/database/1a4b11ab09b344d59cd654016930ccf0"
-                );
+                const data = await notionTasksPersistence.getAll({
+                    params: { name: "tasks" }
+                });
+
                 const parsed = parseNotionTasks(data);
                 setAllTasks(parsed);
-                setVisibleTasks(parsed.slice(0, PAGE_SIZE)); // initial 10
+                setVisibleTasks(parsed.slice(0, PAGE_SIZE));
             } catch (err) {
-                LOGGER.error("Failed to fetch tasks from Notion API:", err);
+                // Log the raw error first
+                LOGGER.group("Notion fetchTasks error");
+                LOGGER.error("Raw error object:", err);
+
+                // Try to log properties if they exist
+                if (err) {
+                    LOGGER.error("err.message:", err.message);
+                    LOGGER.error("err.name:", err.name);
+                    LOGGER.error("err.stack:", err.stack);
+                    LOGGER.error("err.response:", err.response);
+                    if (err.response) {
+                        LOGGER.error("err.response.status:", err.response.status);
+                        LOGGER.error("err.response.data:", err.response.data);
+                    }
+                } else {
+                    LOGGER.error("err is undefined or null");
+                }
+                LOGGER.groupEnd();
+
+                // Fallback to dummy tasks
                 setAllTasks(dummyTasks);
                 setVisibleTasks(dummyTasks.slice(0, PAGE_SIZE));
             }
@@ -37,7 +62,7 @@ export default function NotionTasks() {
         fetchTasks();
     }, []);
 
-    // Load more when "loader" div enters viewport
+    // Infinite scroll logic
     const loadMore = useCallback(() => {
         setPage((prev) => {
             const nextPage = prev + 1;
@@ -49,17 +74,12 @@ export default function NotionTasks() {
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting) {
-                    loadMore();
-                }
+                if (entries[0].isIntersecting) loadMore();
             },
             { threshold: 1.0 }
         );
 
-        if (loaderRef.current) {
-            observer.observe(loaderRef.current);
-        }
-
+        if (loaderRef.current) observer.observe(loaderRef.current);
         return () => {
             if (loaderRef.current) observer.unobserve(loaderRef.current);
         };

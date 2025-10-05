@@ -1,20 +1,30 @@
-import React, { useState, useEffect } from "react";
-import { getApi, LOGGER } from "@rumpushub/common-react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
+import {
+    LOGGER,
+    ApiPersistence
+} from "@rumpushub/common-react";
 import { parseLeaderboardData } from "./utils";
 
 /**
  * Leaderboard component
- * Fetches leaderboard data from Notion API, computes rates, and renders
- * a sorted, expandable leaderboard with top 3 visually emphasized.
+ * Fetches leaderboard data via ApiPersistence, computes rates,
+ * and renders a sorted, expandable leaderboard with infinite scroll.
  */
 export default function Leaderboard() {
     const [allEntries, setAllEntries] = useState([]);
-    const [sortBy, setSortBy] = useState("rate"); // Default sort
-    const [expandedId, setExpandedId] = useState(null); // Track expanded entry
+    const [visibleEntries, setVisibleEntries] = useState([]);
+    const [page, setPage] = useState(1);
+    const loaderRef = useRef(null);
+    const PAGE_SIZE = 10;
+
+    // Create persistence instance for the leaderboard API
+    const leaderboardPersistence = ApiPersistence(
+        "/notion-api/integrations/notion/consoleIntegration/database"
+    );
 
     /**
      * Compute rate based on count and duration
-     * Returns value and unit string
+     * Returns an object with value and unit string
      */
     const calculateRate = (count, durationSec) => {
         if (durationSec <= 0) return { value: 0, unit: "units/sec" };
@@ -23,45 +33,73 @@ export default function Leaderboard() {
         return { value: count / (durationSec / 3600), unit: "units/hr" };
     };
 
-    // Fetch leaderboard data on mount
+    // Fetch leaderboard entries on mount
     useEffect(() => {
         async function fetchLeaderboard() {
             try {
-                const api = getApi();
-                const { data } = await api.get(
-                    "/notion-api/integrations/notion/consoleIntegration/database/264cee7d24dc81b7b071e37ae2576148"
-                );
+                const data = await leaderboardPersistence.getAll({
+                    params: { name: "leaderboard" }
+                });
 
                 const parsed = parseLeaderboardData(data).map((entry) => {
                     const { value, unit } = calculateRate(entry.count, entry.duration);
-                    return {
-                        ...entry,
-                        rateValue: value,
-                        rateUnit: unit,
-                    };
+                    return { ...entry, rateValue: value, rateUnit: unit };
                 });
 
                 setAllEntries(parsed);
+                setVisibleEntries(parsed.slice(0, PAGE_SIZE));
             } catch (err) {
-                LOGGER.error("Failed to fetch leaderboard:", err);
-                setAllEntries([]);
+                // Detailed logging of errors
+                LOGGER.group("Leaderboard fetch error");
+                LOGGER.error("Raw error object:", err);
+                if (err) {
+                    LOGGER.error("err.message:", err.message);
+                    LOGGER.error("err.name:", err.name);
+                    LOGGER.error("err.stack:", err.stack);
+                    LOGGER.error("err.response:", err.response);
+                    if (err.response) {
+                        LOGGER.error("err.response.status:", err.response.status);
+                        LOGGER.error("err.response.data:", err.response.data);
+                    }
+                } else {
+                    LOGGER.error("err is undefined or null");
+                }
+                LOGGER.groupEnd();
             }
         }
 
         fetchLeaderboard();
     }, []);
 
-    // Sort entries based on selected criteria
-    const sortedEntries = [...allEntries].sort((a, b) => {
-        if (sortBy === "count") return b.count - a.count;
-        if (sortBy === "rate") return b.rateValue - a.rateValue;
-        return 0;
-    });
+    // Infinite scroll logic
+    const loadMore = useCallback(() => {
+        setPage((prev) => {
+            const nextPage = prev + 1;
+            setVisibleEntries(allEntries.slice(0, nextPage * PAGE_SIZE));
+            return nextPage;
+        });
+    }, [allEntries]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting) loadMore();
+            },
+            { threshold: 1.0 }
+        );
+
+        if (loaderRef.current) observer.observe(loaderRef.current);
+        return () => {
+            if (loaderRef.current) observer.unobserve(loaderRef.current);
+        };
+    }, [loadMore]);
+
+    const [expandedId, setExpandedId] = useState(null);
+    const toggleExpand = (id) => setExpandedId(expandedId === id ? null : id);
 
     /**
-     * Returns styles for a leaderboard entry based on rank
-     * - Top 3 have unique colors, larger padding, and font
-     * - Entries beyond 3 fade gradually
+     * Returns styles for leaderboard entry based on rank
+     * Top 3 entries have unique styling, others fade
      */
     const getRankStyle = (idx) => {
         const style = {
@@ -76,26 +114,19 @@ export default function Leaderboard() {
         if (idx === 0) style.backgroundColor = "#ffd700"; // Gold
         else if (idx === 1) style.backgroundColor = "#c0c0c0"; // Silver
         else if (idx === 2) style.backgroundColor = "#cd7f32"; // Bronze
-        else style.backgroundColor = "#b0e0e6"; // Pale blue for others
+        else style.backgroundColor = "#b0e0e6"; // Pale blue
 
         // Fade effect starting from 4th entry
-        if (idx >= 3) {
-            const fadeFactor = Math.max(0.3, 1 - (idx - 3) * 0.15); // Min opacity 0.3
-            style.opacity = fadeFactor;
-        }
+        if (idx >= 3) style.opacity = Math.max(0.3, 1 - (idx - 3) * 0.15);
 
-        // Scale padding for first three
-        if (idx === 0) style.padding = "1.2rem 1rem";
-        else if (idx === 1) style.padding = "1.1rem 1rem";
-        else if (idx === 2) style.padding = "1rem 1rem";
-        else style.padding = "0.8rem 1rem"; // Standard for others
+        // Scale padding for top 3
+        style.padding = idx === 0 ? "1.2rem 1rem" :
+            idx === 1 ? "1.1rem 1rem" :
+                idx === 2 ? "1rem 1rem" : "0.8rem 1rem";
 
         return style;
     };
 
-    /**
-     * Returns font sizes for rank and username based on index
-     */
     const getFontSize = (idx) => {
         if (idx === 0) return { rank: "1.5rem", name: "1.3rem" };
         if (idx === 1) return { rank: "1.3rem", name: "1.15rem" };
@@ -103,71 +134,50 @@ export default function Leaderboard() {
         return { rank: "1rem", name: "1rem" };
     };
 
-    // Toggle expanded/collapsed state for details
-    const toggleExpand = (id) => setExpandedId(expandedId === id ? null : id);
+    // Sort by rate by default
+    const sortedEntries = [...visibleEntries].sort((a, b) => b.rateValue - a.rateValue);
 
     return (
-        <div className="leaderboard-container" style={{ maxWidth: "600px", margin: "0 auto" }}>
-            {/* Sort selector */}
-            <div className="mb-3" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <label>Sort by:</label>
-                <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="input"
-                >
-                    <option value="count">Count (High → Low)</option>
-                    <option value="rate">Rate (High → Low)</option>
-                </select>
-            </div>
+        <div className="section" style={{ maxWidth: "600px", margin: "0 auto" }}>
+            <h1 className="title">Leaderboard</h1>
 
-            {/* Leaderboard list */}
-            <div style={{ maxHeight: "70vh", overflowY: "auto", paddingRight: "0.5rem" }}>
-                {sortedEntries.map((entry, idx) => {
-                    const isExpanded = expandedId === entry.id;
-                    const style = getRankStyle(idx);
-                    const fontSizes = getFontSize(idx);
+            {sortedEntries.map((entry, idx) => {
+                const isExpanded = expandedId === entry.id;
+                const style = getRankStyle(idx);
+                const fontSizes = getFontSize(idx);
 
-                    return (
-                        <div
-                            key={entry.id}
-                            className="leaderboard-entry"
-                            onClick={() => toggleExpand(entry.id)}
-                            style={style}
-                            title="Click to view more details"
-                        >
-                            {/* Rank, username, and metrics */}
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                                    <span style={{ fontSize: fontSizes.rank }}>{idx + 1}.</span>
-                                    <span style={{ fontSize: fontSizes.name }}>{entry.user}</span>
-                                </div>
-                                <div style={{ textAlign: "right" }}>
-                                    <div>Count: {entry.count}</div>
-                                    <div>
-                                        Rate: {entry.rateValue.toFixed(2)} {entry.rateUnit}
-                                    </div>
-                                </div>
+                return (
+                    <div
+                        key={entry.id}
+                        className="leaderboard-entry"
+                        onClick={() => toggleExpand(entry.id)}
+                        style={style}
+                        title="Click to view more details"
+                    >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                                <span style={{ fontSize: fontSizes.rank }}>{idx + 1}.</span>
+                                <span style={{ fontSize: fontSizes.name }}>{entry.user}</span>
                             </div>
-
-                            {/* Expanded details */}
-                            {isExpanded && (
-                                <div style={{ marginTop: "0.5rem", fontSize: "0.9rem" }}>
-                                    <div>Start: {entry.startTimestamp || "—"}</div>
-                                    <div>End: {entry.endTimestamp || "—"}</div>
-                                    {entry.notes && <div>Notes: {entry.notes}</div>}
-                                </div>
-                            )}
+                            <div style={{ textAlign: "right" }}>
+                                <div>Count: {entry.count}</div>
+                                <div>Rate: {entry.rateValue.toFixed(2)} {entry.rateUnit}</div>
+                            </div>
                         </div>
-                    );
-                })}
-            </div>
+
+                        {isExpanded && (
+                            <div style={{ marginTop: "0.5rem", fontSize: "0.9rem" }}>
+                                <div>Start: {entry.startTimestamp || "—"}</div>
+                                <div>End: {entry.endTimestamp || "—"}</div>
+                                {entry.notes && <div>Notes: {entry.notes}</div>}
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
+
+            {/* Infinite scroll loader sentinel */}
+            <div ref={loaderRef} style={{ height: "40px" }} />
         </div>
     );
 }
