@@ -67,6 +67,7 @@ function parseNotionTasks(notionResponse) {
             dueDate,
             completed: false, // default until mapped
             highlighted: false, // default until mapped
+            status,
         };
     });
 }

@@ -32,6 +32,8 @@ export default function NotionTasks({ showTaskButtons = false }) {
         selectedUsers: [],
         showCompleted: true,
         sortOrder: "desc", // "asc" or "desc"
+        status: "", // not started, in progress, etc
+
     });
     const loaderRef = useRef(null);
     const PAGE_SIZE = 10;
@@ -51,6 +53,7 @@ export default function NotionTasks({ showTaskButtons = false }) {
             try {
                 const data = await notionTasksPersistence.getAll({ params: { name: "tasks" } });
                 const parsed = parseNotionTasks(data);
+                LOGGER.debug(data);
                 setAllTasks(parsed);
                 setVisibleTasks(parsed.slice(0, PAGE_SIZE));
             } catch (err) {
@@ -82,6 +85,12 @@ export default function NotionTasks({ showTaskButtons = false }) {
         if (!filters.showCompleted) {
             tasks = tasks.filter((t) => !t.completed);
         }
+
+        // Filter by status
+        if (filters.status) {
+            tasks = tasks.filter((t) => t.status === filters.status);
+        }
+
 
         // Sort by due date using toggle
         tasks.sort((a, b) => {
@@ -161,6 +170,10 @@ export default function NotionTasks({ showTaskButtons = false }) {
         return { value: id, label: user.name };
     });
 
+    const uniqueStatuses = Array.from(
+        new Set(allTasks.map((t) => t.status).filter(Boolean))
+    ).map((s) => ({ value: s, label: s }));
+
     /** ----------------------------
      * Filter menu definition
      * ---------------------------- */
@@ -181,6 +194,12 @@ export default function NotionTasks({ showTaskButtons = false }) {
             key: "showCompleted",
             type: "checkbox",
             label: "Show Completed",
+        },
+        {
+            key: "status",
+            type: "select",
+            label: "Status",
+            options: uniqueStatuses,
         },
     ];
 
