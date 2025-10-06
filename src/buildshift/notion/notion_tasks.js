@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, {
+    useEffect,
+    useState,
+    useMemo,
+    useRef,
+    useCallback
+} from "react";
 import {
     TasksTemplate,
     ControlButtonRetro,
@@ -22,18 +28,14 @@ import { parseNotionTasks } from "./utils";
  * @param {boolean} [props.showTaskButtons=false] - Show task action buttons
  */
 export default function NotionTasks({ showTaskButtons = false }) {
-    /** ----------------------------
-     * State & Constants
-     * ---------------------------- */
     const [allTasks, setAllTasks] = useState([]);
     const [visibleTasks, setVisibleTasks] = useState([]);
     const [page, setPage] = useState(1);
     const [filters, setFilters] = useState({
         selectedUsers: [],
         showCompleted: true,
-        sortOrder: "desc", // "asc" or "desc"
-        status: "", // not started, in progress, etc
-
+        sortOrder: "desc",
+        status: "",
     });
     const loaderRef = useRef(null);
     const PAGE_SIZE = 10;
@@ -41,32 +43,29 @@ export default function NotionTasks({ showTaskButtons = false }) {
     /** ----------------------------
      * API Setup
      * ---------------------------- */
-    const notionTasksPersistence = ApiPersistence(
-        "/notion-api/integrations/notion/projectManagementIntegration/database"
-    );
+    const notionTasksPersistence = useMemo(() =>
+        ApiPersistence("/notion-api/integrations/notion/projectManagementIntegration/database"),
+        [], []);
 
-    /** ----------------------------
-     * Fetch tasks on mount
-     * ---------------------------- */
-    useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const data = await notionTasksPersistence.getAll({ params: { name: "tasks" } });
-                const parsed = parseNotionTasks(data);
-                LOGGER.debug(data);
-                setAllTasks(parsed);
-                setVisibleTasks(parsed.slice(0, PAGE_SIZE));
-            } catch (err) {
-                LOGGER.group("Notion fetchTasks error");
-                LOGGER.error(err);
-                LOGGER.groupEnd();
-                // Fallback to dummy data
-                setAllTasks(dummyTasks);
-                setVisibleTasks(dummyTasks.slice(0, PAGE_SIZE));
-            }
-        };
-        fetchTasks();
+
+    const fetchTasks = useCallback(async () => {
+        try {
+            const data = await notionTasksPersistence.getAll({ params: { name: "tasks" } });
+            const parsed = parseNotionTasks(data);
+            setAllTasks(parsed);
+            setVisibleTasks(parsed.slice(0, PAGE_SIZE));
+        } catch (err) {
+            setAllTasks(dummyTasks);
+            setVisibleTasks(dummyTasks.slice(0, PAGE_SIZE));
+        }
     }, [notionTasksPersistence]);
+
+    useEffect(() => {
+        fetchTasks(); // initial
+        const interval = setInterval(fetchTasks, 20000);
+        return () => clearInterval(interval);
+    }, [fetchTasks]);
+
 
     /** ----------------------------
      * Filtered + sorted tasks logic
@@ -91,8 +90,7 @@ export default function NotionTasks({ showTaskButtons = false }) {
             tasks = tasks.filter((t) => t.status === filters.status);
         }
 
-
-        // Sort by due date using toggle
+        // Sort by due date
         tasks.sort((a, b) => {
             const dateA = new Date(a.dueDate).getTime() || 0;
             const dateB = new Date(b.dueDate).getTime() || 0;
@@ -144,19 +142,9 @@ export default function NotionTasks({ showTaskButtons = false }) {
      * ---------------------------- */
     const taskUiElements = showTaskButtons
         ? (task) => [
-            {
-                component: ControlButtonRetro,
-                props: { label: "Disable Task" },
-                action: TasksTemplate.builtInActions.toggleComplete,
-            },
-            {
-                props: { label: "Highlight Task" },
-                action: TasksTemplate.builtInActions.highlight,
-            },
-            {
-                props: { label: "Delete Task" },
-                action: TasksTemplate.builtInActions.deleteTask,
-            },
+            { component: ControlButtonRetro, props: { label: "Disable Task" }, action: TasksTemplate.builtInActions.toggleComplete },
+            { props: { label: "Highlight Task" }, action: TasksTemplate.builtInActions.highlight },
+            { props: { label: "Delete Task" }, action: TasksTemplate.builtInActions.deleteTask },
         ]
         : undefined;
 
@@ -175,7 +163,7 @@ export default function NotionTasks({ showTaskButtons = false }) {
     ).map((s) => ({ value: s, label: s }));
 
     /** ----------------------------
-     * Filter menu definition
+     * Filter menu definition (now with selectionType)
      * ---------------------------- */
     const filterDefinitions = [
         {
@@ -183,12 +171,13 @@ export default function NotionTasks({ showTaskButtons = false }) {
             type: "multi-select",
             label: "Assigned Users",
             options: userOptions,
+            selectionType: "highlighted", // <-- new param
         },
         {
             key: "sortOrder",
             type: "toggle",
             label: "Sort by Due Date",
-            toggleLabels: ["asc", "desc"], // Ascending/Descending
+            toggleLabels: ["asc", "desc"],
         },
         {
             key: "showCompleted",
@@ -200,19 +189,18 @@ export default function NotionTasks({ showTaskButtons = false }) {
             type: "select",
             label: "Status",
             options: uniqueStatuses,
+            selectionType: "chip", // highlighted / checked / chip
         },
     ];
 
     /** ----------------------------
- * Render
- * ---------------------------- */
+     * Render
+     * ---------------------------- */
     return (
         <div className="section">
-            {/* Title + Filter Button Row */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
                 <h1 className="title">Notion Tasks</h1>
 
-                {/* TaskFilterMenu button/modal */}
                 <TaskFilterMenu
                     filters={filterDefinitions}
                     values={filters}
@@ -222,7 +210,6 @@ export default function NotionTasks({ showTaskButtons = false }) {
                 />
             </div>
 
-            {/* Tasks list */}
             <TasksTemplate
                 tasks={visibleTasks}
                 currentUser={currentUser}
@@ -234,9 +221,7 @@ export default function NotionTasks({ showTaskButtons = false }) {
                 taskUiElements={taskUiElements}
             />
 
-            {/* Infinite scroll loader sentinel */}
             <div ref={loaderRef} style={{ height: "40px" }} />
         </div>
     );
-
 }
