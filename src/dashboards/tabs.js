@@ -5,6 +5,7 @@ import Home from './tab_home';
 import FlavorPumpDashboard from './flavor_pump';
 import MachineTaskManager from './machine_task_manager';
 import { AdminSiteSettingsDashboard, EntityTaskManager } from '@rumpushub/common-react';
+import CounterSessionChart from '../buildshift/analytics/counter_session_chart';
 
 export default function Tabs() {
 
@@ -14,6 +15,7 @@ export default function Tabs() {
     const [dashboardActive, setDashboardActive] = React.useState(false);
     const [machineTaskManagerActive, setMachineTaskManagerActive] = React.useState(false);
     const [settingsActive, setSettingsActive] = React.useState(false);
+    const [analyticsActive, setAnalyticsActive] = React.useState(false);
 
     const [activeWindow, setActiveWindow] = React.useState(<Home />);
 
@@ -22,6 +24,7 @@ export default function Tabs() {
         setDashboardActive(false);
         setMachineTaskManagerActive(false);
         setSettingsActive(false);
+        setAnalyticsActive(false);
     }
 
     return (
@@ -46,6 +49,12 @@ export default function Tabs() {
                     <li className={settingsActive ? 'is-active' : ''}>
                         <a onClick={() => { clear(); setSettingsActive(true); setActiveWindow(<AdminSiteSettingsDashboard />); }}>
                             <span>Site Settings</span>
+                        </a>
+                    </li>
+
+                    <li className={analyticsActive ? 'is-active' : ''}>
+                        <a onClick={() => { clear(); setAnalyticsActive(true); setActiveWindow(<CounterSessionChart apiUrl="http://localhost:8000/api/analytics/counter-session-data/" />); }}>
+                            <span>Analytics</span>
                         </a>
                     </li>
                 </ul>
