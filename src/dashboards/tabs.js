@@ -53,7 +53,7 @@ export default function Tabs() {
                     </li>
 
                     <li className={analyticsActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setAnalyticsActive(true); setActiveWindow(<CounterSessionChart apiUrl="http://localhost:8000/api/analytics/counter-session-data/" />); }}>
+                        <a onClick={() => { clear(); setAnalyticsActive(true); setActiveWindow(<CounterSessionChart apiUrl="http://localhost:8000/api/rumpshift-analytics/counter-session-data/" />); }}>
                             <span>Analytics</span>
                         </a>
                     </li>

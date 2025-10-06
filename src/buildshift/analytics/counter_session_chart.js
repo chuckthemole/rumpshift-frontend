@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import axios from "axios";
+import { getNamedApi } from "@rumpushub/common-react";
 
 const CounterSessionChart = ({ apiUrl }) => {
     const [data, setData] = useState([]);
@@ -9,7 +9,8 @@ const CounterSessionChart = ({ apiUrl }) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get(apiUrl, {
+                const api = getNamedApi('RUMPSHIFT_API')
+                const response = await api.get(apiUrl, {
                     params: {
                         group_by: "User",  // Example: aggregate by user
                         agg: "sum"
