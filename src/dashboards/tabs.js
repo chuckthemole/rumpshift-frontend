@@ -1,23 +1,24 @@
-const React = require('react');
-const ReactDOM = require('react-dom/client');
+import React from 'react';
+import { useState } from 'react';
+import ReactDOM from 'react-dom/client';
 
 import Home from './tab_home';
 import FlavorPumpDashboard from './flavor_pump';
 import MachineTaskManager from './machine_task_manager';
 import { AdminSiteSettingsDashboard, EntityTaskManager } from '@rumpushub/common-react';
-import CounterSessionChart from '../buildshift/analytics/counter_session_chart';
+import CounterSessionChart, { SimplifiedLevel } from '../buildshift/analytics/counter_session_chart';
 
 export default function Tabs() {
 
     const is_active = 'is-active';
 
-    const [homeActive, setHomeActive] = React.useState(true);
-    const [dashboardActive, setDashboardActive] = React.useState(false);
-    const [machineTaskManagerActive, setMachineTaskManagerActive] = React.useState(false);
-    const [settingsActive, setSettingsActive] = React.useState(false);
-    const [analyticsActive, setAnalyticsActive] = React.useState(false);
+    const [homeActive, setHomeActive] = useState(true);
+    const [dashboardActive, setDashboardActive] = useState(false);
+    const [machineTaskManagerActive, setMachineTaskManagerActive] = useState(false);
+    const [settingsActive, setSettingsActive] = useState(false);
+    const [analyticsActive, setAnalyticsActive] = useState(false);
 
-    const [activeWindow, setActiveWindow] = React.useState(<Home />);
+    const [activeWindow, setActiveWindow] = useState(<Home />);
 
     function clear() {
         setHomeActive(false);
@@ -53,7 +54,14 @@ export default function Tabs() {
                     </li>
 
                     <li className={analyticsActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setAnalyticsActive(true); setActiveWindow(<CounterSessionChart apiUrl="http://localhost:8000/api/rumpshift-analytics/counter-session-data/" />); }}>
+                        <a onClick={() => {
+                            clear(); setAnalyticsActive(true); setActiveWindow(
+                                <CounterSessionChart
+                                    apiUrl="http://localhost:8000/api/rumpshift-analytics/counter-session-data/"
+                                    showControls={true}
+                                    simplifiedLevel={SimplifiedLevel.DETAILED} />
+                            );
+                        }}>
                             <span>Analytics</span>
                         </a>
                     </li>

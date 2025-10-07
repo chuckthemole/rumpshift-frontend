@@ -4,6 +4,7 @@ import {
     ApiPersistence
 } from "@rumpushub/common-react";
 import { parseLeaderboardData } from "./utils";
+import CounterSessionChart from "../analytics/counter_session_chart";
 
 /**
  * Leaderboard component
@@ -152,7 +153,6 @@ export default function Leaderboard() {
                         className="leaderboard-entry"
                         onClick={() => toggleExpand(entry.id)}
                         style={style}
-                        title="Click to view more details"
                     >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -170,6 +170,18 @@ export default function Leaderboard() {
                                 <div>Start: {entry.startTimestamp || "—"}</div>
                                 <div>End: {entry.endTimestamp || "—"}</div>
                                 {entry.notes && <div>Notes: {entry.notes}</div>}
+
+                                {/* Embed CounterSessionChart for this user */}
+                                <span>All User Data:</span>
+                                <div style={{ marginTop: "1rem" }}>
+                                    <CounterSessionChart
+                                        apiUrl="http://localhost:8000/api/rumpshift-analytics/counter-session-data/"
+                                        defaultViewMode="individual_user"
+                                        showControls={false}       // hide the controls in dropdown
+                                        defaultUser={entry.user}   // pass the user dynamically
+                                        backgroundColor="white"
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
