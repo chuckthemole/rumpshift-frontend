@@ -13,12 +13,7 @@ import {
 import { getNamedApi, LOGGER, ComponentLoading } from "@rumpushub/common-react";
 
 /**
- * Enum-like object for simplified levels.
- * 0 = Fully detailed
- * 1 = Hide grid
- * 2 = Hide grid + legend
- * 3 = Hide grid + legend, keep axes
- * 4 = Bare minimum (tooltip only)
+ * Enum-like object for simplified display levels.
  */
 const SimplifiedLevel = {
     DETAILED: 0,
@@ -31,25 +26,25 @@ const SimplifiedLevel = {
 /**
  * CounterSessionChart
  *
- * A flexible chart component for rendering user/session metrics using Recharts.
- * Supports LineChart and BarChart with various view modes and focus metrics.
- * Includes multiple simplified levels for compact display.
- *
  * Props:
- * - apiUrl (string): API endpoint for fetching counter session data.
- * - defaultViewMode (string): Initial view mode (default, user, date, etc.).
- * - showControls (boolean): Whether to render the controls for changing view/focus/user.
- * - defaultUser (string): Default user for individual_user view mode.
- * - simplifiedLevel (number): Level of simplified display (0 = detailed, 4 = bare minimum)
- * - backgroundColor (string): Background color of chart container ("transparent" or any CSS color)
+ * - apiUrl (string): API endpoint.
+ * - defaultViewMode (string): Initial view mode.
+ * - showControls (boolean): Whether to render view/user controls.
+ * - defaultUser (string): Default user for individual_user mode.
+ * - simplifiedLevel (number): Simplified display level.
+ * - backgroundColor (string): Chart container background.
+ * - title (string): Optional title above chart.
+ * - description (string): Optional description above chart.
  */
 const CounterSessionChart = ({
     apiUrl,
     defaultViewMode = "default",
     showControls = true,
-    defaultUser = 'None',
+    defaultUser = "None",
     simplifiedLevel = SimplifiedLevel.AXES_ONLY,
-    backgroundColor = "transparent"
+    backgroundColor = "transparent",
+    title,
+    description
 }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -57,7 +52,7 @@ const CounterSessionChart = ({
     const [focusMetric, setFocusMetric] = useState("both");
     const [selectedUser, setSelectedUser] = useState(defaultUser);
 
-    // Fetch data whenever apiUrl, viewMode, or selectedUser changes
+    // Fetch data whenever viewMode or selectedUser changes
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -80,13 +75,12 @@ const CounterSessionChart = ({
         fetchData();
     }, [apiUrl, viewMode, selectedUser]);
 
-    // Process chart data and compute duration scaling
+    // Process chart data and scale Duration
     const chartData = useMemo(() => {
         if (!data.length) return [];
         const maxDuration = Math.max(...data.map(d => d.Duration || 0));
         let durationFactor = 1;
         let durationLabel = "s";
-
         if (maxDuration > 3600) durationFactor = 3600, durationLabel = "h";
         else if (maxDuration > 60) durationFactor = 60, durationLabel = "min";
 
@@ -95,11 +89,13 @@ const CounterSessionChart = ({
             Count: d.Count ?? 0,
             DurationDisplay: d.Duration ? d.Duration / durationFactor : 0,
             _DurationLabel: durationLabel,
-            "Begin Timestamp": d["Begin Timestamp"] || null
+            "Begin Timestamp": d["Begin Timestamp"] || null,
+            short_description: d.short_description || "",
+            verbose_description: d.verbose_description || ""
         }));
     }, [data]);
 
-    // Determine Y-axis label text
+    // Y-axis label
     const yAxisLabel = useMemo(() => {
         if (simplifiedLevel >= SimplifiedLevel.AXES_ONLY) return "";
         const durationLabel = chartData[0]?._DurationLabel || "s";
@@ -107,6 +103,10 @@ const CounterSessionChart = ({
         if (focusMetric === "Duration") return durationLabel;
         return `Count / Duration (${durationLabel})`;
     }, [focusMetric, chartData, simplifiedLevel]);
+
+    // Formatting helpers
+    const formatNumber = num => (num == null ? "-" : Number.isInteger(num) ? num : num.toFixed(2));
+    const formatDate = ts => ts ? new Date(ts).toLocaleString() : null;
 
     if (loading) return <ComponentLoading />;
     if (!data.length) return <div>No data available</div>;
@@ -118,8 +118,28 @@ const CounterSessionChart = ({
     const showLegend = simplifiedLevel < SimplifiedLevel.NO_GRID_LEGEND;
     const showAxes = simplifiedLevel < SimplifiedLevel.AXES_ONLY;
 
+    // Reusable tooltip content
+    const renderTooltip = ({ active, payload }) => {
+        if (!active || !payload || !payload.length) return null;
+        const entry = payload[0].payload;
+        return (
+            <div style={{ backgroundColor: "#fff", padding: "0.5rem", borderRadius: "4px", boxShadow: "0 2px 6px rgba(0,0,0,0.2)" }}>
+                <div><strong>User:</strong> {entry.User}</div>
+                <div><strong>Count:</strong> {formatNumber(entry.Count)}</div>
+                <div><strong>Duration ({entry._DurationLabel}):</strong> {formatNumber(entry.DurationDisplay)}</div>
+                {entry["Begin Timestamp"] && <div><strong>Start:</strong> {formatDate(entry["Begin Timestamp"])}</div>}
+                {entry.short_description && <div><strong>Title:</strong> {entry.short_description}</div>}
+                {entry.verbose_description && <div><strong>Description:</strong> {entry.verbose_description}</div>}
+            </div>
+        );
+    };
+
     return (
         <div style={{ overflowX: "auto", width: "100%" }}>
+            {/* Optional Title / Description */}
+            {title && <h3 style={{ marginBottom: "0.25rem" }}>{title}</h3>}
+            {description && <p style={{ marginBottom: "0.5rem", color: "#555" }}>{description}</p>}
+
             {/* Optional Controls */}
             {showControls && simplifiedLevel === SimplifiedLevel.DETAILED && (
                 <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
@@ -134,7 +154,6 @@ const CounterSessionChart = ({
                             <option value="individual_user">Individual User</option>
                         </select>
                     </div>
-
                     {viewMode === "individual_user" && (
                         <div>
                             <label>User: </label>
@@ -146,7 +165,6 @@ const CounterSessionChart = ({
                             />
                         </div>
                     )}
-
                     <div>
                         <label>Focus Metric: </label>
                         <select value={focusMetric} onChange={e => setFocusMetric(e.target.value)}>
@@ -159,99 +177,28 @@ const CounterSessionChart = ({
             )}
 
             {/* Chart Container */}
-            <div style={{ overflowX: "auto", width: "100%" }}>
-                <div
-                    style={{
-                        minWidth: Math.max(chartData.length * 80, 600), // match chart width
-                        backgroundColor: backgroundColor,
-                        padding: backgroundColor !== "transparent" ? "0.5rem" : 0,
-                        borderRadius: backgroundColor !== "transparent" ? "8px" : 0,
-                        boxShadow: backgroundColor !== "transparent" ? "0 2px 6px rgba(0,0,0,0.1)" : "none"
-                    }}
-                >
-                    {isLineChart ? (
-                        <LineChart
-                            data={chartData}
-                            width={Math.max(chartData.length * 80, 600)}
-                            height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400}
-                            margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-                        >
-                            {showGrid && <CartesianGrid strokeDasharray="3 3" />}
-                            {showAxes && (
-                                <XAxis
-                                    dataKey={xKey}
-                                    interval={0}
-                                    tickFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val}
-                                    angle={-45}
-                                    textAnchor="end"
-                                />
-                            )}
-                            {showAxes && (
-                                <YAxis
-                                    label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }}
-                                    tickFormatter={value =>
-                                        (focusMetric === "Duration" || focusMetric === "both")
-                                            ? `${value.toFixed(1)} ${chartData[0]?._DurationLabel ?? "s"}`
-                                            : value
-                                    }
-                                />
-                            )}
-                            <Tooltip
-                                formatter={(value, name, props) => {
-                                    const payload = props?.payload || {};
-                                    if (name === "DurationDisplay") return [payload.DurationDisplay ?? 0, `Duration (${payload._DurationLabel ?? "s"})`];
-                                    if (name === "Count") return [payload.Count ?? 0, "Count"];
-                                    if (name === "User") return [payload.User ?? "Unknown", "User"];
-                                    return [value ?? "-", name];
-                                }}
-                                labelFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleString() : val}
-                            />
-                            {(focusMetric === "both" || focusMetric === "Count") && <Line type="monotone" dataKey="Count" stroke="#8884d8" dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY} />}
-                            {(focusMetric === "both" || focusMetric === "Duration") && <Line type="monotone" dataKey="DurationDisplay" stroke="#82ca9d" dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY} />}
-                            {showLegend && <Legend />}
-                        </LineChart>
-                    ) : (
-                        <BarChart
-                            data={chartData}
-                            width={Math.max(chartData.length * 80, 600)}
-                            height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400}
-                            margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-                        >
-                            {showGrid && <CartesianGrid strokeDasharray="3 3" />}
-                            {showAxes && (
-                                <XAxis
-                                    dataKey={xKey}
-                                    interval={0}
-                                    tickFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val}
-                                    angle={-45}
-                                    textAnchor="end"
-                                />
-                            )}
-                            {showAxes && (
-                                <YAxis
-                                    label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }}
-                                    tickFormatter={value =>
-                                        (focusMetric === "Duration" || focusMetric === "both")
-                                            ? `${value.toFixed(1)} ${chartData[0]?._DurationLabel ?? "s"}`
-                                            : value
-                                    }
-                                />
-                            )}
-                            <Tooltip
-                                formatter={(value, name, props) => {
-                                    const payload = props?.payload || {};
-                                    if (name === "DurationDisplay") return [payload.DurationDisplay ?? 0, `Duration (${payload._DurationLabel ?? "s"})`];
-                                    if (name === "Count") return [payload.Count ?? 0, "Count"];
-                                    if (name === "User") return [payload.User ?? "Unknown", "User"];
-                                    return [value ?? "-", name];
-                                }}
-                            />
-                            {(focusMetric === "both" || focusMetric === "Count") && <Bar dataKey="Count" fill="#8884d8" />}
-                            {(focusMetric === "both" || focusMetric === "Duration") && <Bar dataKey="DurationDisplay" fill="#82ca9d" />}
-                            {showLegend && <Legend />}
-                        </BarChart>
-                    )}
-                </div>
+            <div style={{ minWidth: Math.max(chartData.length * 80, 600), backgroundColor, padding: backgroundColor !== "transparent" ? "0.5rem" : 0, borderRadius: backgroundColor !== "transparent" ? "8px" : 0 }}>
+                {isLineChart ? (
+                    <LineChart data={chartData} width={Math.max(chartData.length * 80, 600)} height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                        {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+                        {showAxes && <XAxis dataKey={xKey} interval={0} tickFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val} angle={-45} textAnchor="end" />}
+                        {showAxes && <YAxis label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }} />}
+                        <Tooltip content={renderTooltip} />
+                        {(focusMetric === "both" || focusMetric === "Count") && <Line type="monotone" dataKey="Count" stroke="#8884d8" dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY} />}
+                        {(focusMetric === "both" || focusMetric === "Duration") && <Line type="monotone" dataKey="DurationDisplay" stroke="#82ca9d" dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY} />}
+                        {showLegend && <Legend />}
+                    </LineChart>
+                ) : (
+                    <BarChart data={chartData} width={Math.max(chartData.length * 80, 600)} height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                        {showGrid && <CartesianGrid strokeDasharray="3 3" />}
+                        {showAxes && <XAxis dataKey={xKey} interval={0} tickFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val} angle={-45} textAnchor="end" />}
+                        {showAxes && <YAxis label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }} />}
+                        <Tooltip content={renderTooltip} />
+                        {(focusMetric === "both" || focusMetric === "Count") && <Bar dataKey="Count" fill="#8884d8" />}
+                        {(focusMetric === "both" || focusMetric === "Duration") && <Bar dataKey="DurationDisplay" fill="#82ca9d" />}
+                        {showLegend && <Legend />}
+                    </BarChart>
+                )}
             </div>
         </div>
     );
