@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { getNamedApi } from "@rumpushub/common-react";
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer
+} from "recharts";
+import { getNamedApi, LOGGER } from "@rumpushub/common-react";
 
 const CounterSessionChart = ({ apiUrl }) => {
     const [data, setData] = useState([]);
