@@ -132,7 +132,7 @@ export default function NotionTasks({ showTaskButtons = false }) {
     }, [loadMore]);
 
     /** ----------------------------
-     * Current user & admin
+     * Current user & admin TODO: will need to be updated.
      * ---------------------------- */
     const currentUser = { id: "u1", name: "Alice Johnson" };
     const isAdmin = true;
