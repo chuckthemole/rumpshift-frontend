@@ -11,15 +11,35 @@ export default function CreateBugReportPage() {
         <div className="container">
             <h1 className="title">Submit a Bug Report</h1>
             <BugReportForm
-                endpoint="/api/bugs"  // the API endpoint to POST to
+                endpoint="/notion-api/integrations/notion/projectManagementIntegration/pages?name=bugs"
                 onSuccess={handleSuccess}
                 titlePlaceholder="Bug Title"
                 bodyPlaceholder="Describe the bug in detail..."
                 fields={[
-                    { name: 'assignedTo', label: 'Assigned To' },
-                    { name: 'state', label: 'State', type: 'select', options: ['Open', 'In Progress', 'Closed'] },
-                    { name: 'priority', label: 'Priority', type: 'select', options: ['Low', 'Medium', 'High'] }
+                    {
+                        name: 'assignedTo',                // internal field name
+                        notionName: 'Assigned To',         // Notion property name
+                        label: 'Assigned To',
+                        notionType: 'people'
+                    },
+                    {
+                        name: 'state',
+                        notionName: 'State',
+                        label: 'State',
+                        type: 'select',
+                        notionType: 'select',
+                        options: ['Open', 'In Progress', 'Closed']
+                    },
+                    {
+                        name: 'priority',
+                        notionName: 'Priority',
+                        label: 'Priority',
+                        type: 'select',
+                        notionType: 'select',
+                        options: ['Low', 'Medium', 'High']
+                    }
                 ]}
+
             />
         </div>
     );

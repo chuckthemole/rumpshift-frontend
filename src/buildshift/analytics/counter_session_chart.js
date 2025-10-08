@@ -43,8 +43,8 @@ const CounterSessionChart = ({
     defaultUser = "None",
     simplifiedLevel = SimplifiedLevel.AXES_ONLY,
     backgroundColor = "transparent",
-    title,
-    description
+    title = false,
+    description = false
 }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -145,7 +145,7 @@ const CounterSessionChart = ({
                 <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem", flexWrap: "wrap" }}>
                     <div>
                         <label>View Mode: </label>
-                        <select value={viewMode} onChange={e => setViewMode(e.target.value)}>
+                        <select value={viewMode} onChange={(e) => setViewMode(e.target.value)}>
                             <option value="default">Default (User sum)</option>
                             <option value="user">User (individual entries)</option>
                             <option value="date">Date ascending</option>
@@ -154,20 +154,22 @@ const CounterSessionChart = ({
                             <option value="individual_user">Individual User</option>
                         </select>
                     </div>
+
                     {viewMode === "individual_user" && (
                         <div>
                             <label>User: </label>
                             <input
                                 type="text"
                                 value={selectedUser || ""}
-                                onChange={e => setSelectedUser(e.target.value)}
+                                onChange={(e) => setSelectedUser(e.target.value)}
                                 placeholder="Enter username"
                             />
                         </div>
                     )}
+
                     <div>
                         <label>Focus Metric: </label>
-                        <select value={focusMetric} onChange={e => setFocusMetric(e.target.value)}>
+                        <select value={focusMetric} onChange={(e) => setFocusMetric(e.target.value)}>
                             <option value="both">Both</option>
                             <option value="Count">Count</option>
                             <option value="Duration">Duration</option>
@@ -177,23 +179,129 @@ const CounterSessionChart = ({
             )}
 
             {/* Chart Container */}
-            <div style={{ minWidth: Math.max(chartData.length * 80, 600), backgroundColor, padding: backgroundColor !== "transparent" ? "0.5rem" : 0, borderRadius: backgroundColor !== "transparent" ? "8px" : 0 }}>
+            <div
+                style={{
+                    minWidth: Math.max(chartData.length * 80, 600),
+                    backgroundColor,
+                    padding: backgroundColor !== "transparent" ? "0.5rem" : 0,
+                    borderRadius: backgroundColor !== "transparent" ? "8px" : 0,
+                }}
+            >
                 {isLineChart ? (
-                    <LineChart data={chartData} width={Math.max(chartData.length * 80, 600)} height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                    // LINE CHART
+                    <LineChart
+                        data={chartData}
+                        width={Math.max(chartData.length * 80, 600)}
+                        height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400}
+                        margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                    >
                         {showGrid && <CartesianGrid strokeDasharray="3 3" />}
-                        {showAxes && <XAxis dataKey={xKey} interval={0} tickFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val} angle={-45} textAnchor="end" />}
+                        {showAxes && (
+                            <XAxis
+                                dataKey={xKey}
+                                interval={0}
+                                tickFormatter={(val) =>
+                                    xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val
+                                }
+                                angle={-45}
+                                textAnchor="end"
+                            />
+                        )}
                         {showAxes && <YAxis label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }} />}
-                        <Tooltip content={renderTooltip} />
-                        {(focusMetric === "both" || focusMetric === "Count") && <Line type="monotone" dataKey="Count" stroke="#8884d8" dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY} />}
-                        {(focusMetric === "both" || focusMetric === "Duration") && <Line type="monotone" dataKey="DurationDisplay" stroke="#82ca9d" dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY} />}
+
+                        {/* Tooltip: rounded numeric values, filtered fields */}
+                        <Tooltip
+                            content={({ active, payload, label }) => {
+                                if (!active || !payload || !payload.length) return null;
+                                const filtered = payload.filter(
+                                    (p) => p.dataKey !== "title" && p.dataKey !== "description"
+                                );
+
+                                return (
+                                    <div className="custom-tooltip">
+                                        <p className="label">{`${label}`}</p>
+                                        {filtered.map((p) => {
+                                            let value = p.value;
+                                            if (typeof value === "number" && !Number.isInteger(value)) {
+                                                value = value.toFixed(2);
+                                            }
+                                            return (
+                                                <p key={p.dataKey} style={{ color: p.color }}>
+                                                    {`${p.dataKey}: ${value}`}
+                                                </p>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            }}
+                        />
+
+                        {(focusMetric === "both" || focusMetric === "Count") && (
+                            <Line
+                                type="monotone"
+                                dataKey="Count"
+                                stroke="#8884d8"
+                                dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY}
+                            />
+                        )}
+                        {(focusMetric === "both" || focusMetric === "Duration") && (
+                            <Line
+                                type="monotone"
+                                dataKey="DurationDisplay"
+                                stroke="#82ca9d"
+                                dot={simplifiedLevel < SimplifiedLevel.AXES_ONLY}
+                            />
+                        )}
                         {showLegend && <Legend />}
                     </LineChart>
                 ) : (
-                    <BarChart data={chartData} width={Math.max(chartData.length * 80, 600)} height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
+                    // BAR CHART
+                    <BarChart
+                        data={chartData}
+                        width={Math.max(chartData.length * 80, 600)}
+                        height={simplifiedLevel >= SimplifiedLevel.AXES_ONLY ? 150 : 400}
+                        margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+                    >
                         {showGrid && <CartesianGrid strokeDasharray="3 3" />}
-                        {showAxes && <XAxis dataKey={xKey} interval={0} tickFormatter={val => xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val} angle={-45} textAnchor="end" />}
+                        {showAxes && (
+                            <XAxis
+                                dataKey={xKey}
+                                interval={0}
+                                tickFormatter={(val) =>
+                                    xKey === "Begin Timestamp" && val ? new Date(val).toLocaleDateString() : val
+                                }
+                                angle={-45}
+                                textAnchor="end"
+                            />
+                        )}
                         {showAxes && <YAxis label={{ value: yAxisLabel, angle: -90, position: "insideLeft" }} />}
-                        <Tooltip content={renderTooltip} />
+
+                        <Tooltip
+                            content={({ active, payload, label }) => {
+                                if (!active || !payload || !payload.length) return null;
+                                const filtered = payload.filter(
+                                    (p) => p.dataKey !== "title" && p.dataKey !== "description"
+                                );
+
+                                return (
+                                    <div className="custom-tooltip">
+                                        <p className="label">{`${label}`}</p>
+                                        {filtered.map((p) => {
+                                            let value = p.value;
+                                            if (typeof value === "number" && !Number.isInteger(value)) {
+                                                value = value.toFixed(2);
+                                            }
+                                            return (
+                                                <p key={p.dataKey} style={{ color: p.color }}>
+                                                    {`${p.dataKey}: ${value}`}
+                                                </p>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            }}
+                        />
+
                         {(focusMetric === "both" || focusMetric === "Count") && <Bar dataKey="Count" fill="#8884d8" />}
                         {(focusMetric === "both" || focusMetric === "Duration") && <Bar dataKey="DurationDisplay" fill="#82ca9d" />}
                         {showLegend && <Legend />}
