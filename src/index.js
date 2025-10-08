@@ -39,7 +39,7 @@ const router = createBrowserRouter([
             },
             {
                 path: 'notion_console',
-                element: <NotionTasks />,
+                element: <NotionTasks showTaskButtons={true} />,
                 errorElement: <ErrorPage />,
             },
             {
