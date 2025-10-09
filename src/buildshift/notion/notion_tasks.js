@@ -142,9 +142,19 @@ export default function NotionTasks({ showTaskButtons = false }) {
      * ---------------------------- */
     const taskUiElements = showTaskButtons
         ? (task) => [
-            { component: ControlButtonRetro, props: { label: "Disable Task" }, action: TasksTemplate.builtInActions.toggleComplete },
-            { props: { label: "Highlight Task" }, action: TasksTemplate.builtInActions.highlight },
-            { props: { label: "Delete Task" }, action: TasksTemplate.builtInActions.deleteTask },
+            {
+                component: ControlButtonRetro,
+                props: { label: "Task Finished" },
+                action: TasksTemplate.builtInActions.toggleComplete
+            },
+            {
+                props: { label: "Task in Progress" },
+                action: TasksTemplate.builtInActions.highlight
+            },
+            {
+                props: { label: "Remove Task / Mark as Finished" },
+                action: TasksTemplate.builtInActions.deleteTask
+            },
         ]
         : undefined;
 
