@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-
 import {
     Footer,
     Header,
@@ -8,7 +7,9 @@ import {
     RumpusQuillForm,
     RumpusQuill,
     AuthRoot,
-    useColorSettings
+    useColorSettings,
+    LayoutSettingsProvider,
+    useLayoutSettings
 } from '@rumpushub/common-react';
 
 import NotionConsoleButton from './buildshift/buttons/notion_console_button';
@@ -22,23 +23,34 @@ export default function App() {
     }, []);
 
     return (
-        <div className="app-container">
-            <AuthRoot className="app-inner">
-                <Header
-                    header_path={'/view_bs/header'}
+        <LayoutSettingsProvider>
+            <div className="app-container">
+                <AuthRoot className="app-inner">
+                    <Header
+                        header_path={"/view_bs/header"}
                     // navbarItemsEnd={[<NotionConsoleButton />, <LeaderboardButton />]}
-                />
+                    />
 
-                <main className="app-content columns is-centered">
-                    <div className='column'></div>
-                    <div className='column is-three-fifths'>
-                        <Outlet />
-                    </div>
-                    <div className='column'></div>
-                </main>
+                    <main className="app-content columns is-centered">
+                        <div className="column"></div>
+                        <LayoutContent />
+                        <div className="column"></div>
+                    </main>
 
-                <Footer footer_path={"/view_bs/footer"} />
-            </AuthRoot>
+                    <Footer footer_path={"/view_bs/footer"} />
+                </AuthRoot>
+            </div>
+        </LayoutSettingsProvider>
+    );
+}
+
+// Separate component to consume layout context for main content
+function LayoutContent() {
+    const { layout } = useLayoutSettings();
+
+    return (
+        <div className={`column ${layout.columnWidth}`}>
+            <Outlet />
         </div>
     );
 }

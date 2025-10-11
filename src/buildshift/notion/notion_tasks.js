@@ -224,11 +224,12 @@ export default function NotionTasks({ showTaskButtons = false }) {
                 tasks={visibleTasks}
                 currentUser={currentUser}
                 isAdmin={isAdmin}
-                layout="horizontal"
+                layout='horizontal'
                 onTasksChange={setVisibleTasks}
                 allowReopen={true}
                 showTaskButtons={showTaskButtons}
                 taskUiElements={taskUiElements}
+                fullWidthBoxes
             />
 
             <div ref={loaderRef} style={{ height: "40px" }} />
