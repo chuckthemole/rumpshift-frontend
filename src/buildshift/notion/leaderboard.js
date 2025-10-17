@@ -175,7 +175,7 @@ export default function Leaderboard() {
                                 <span>All User Data:</span>
                                 <div style={{ marginTop: "1rem" }}>
                                     <CounterSessionChart
-                                        apiUrl="http://localhost:8000/api/rumpshift-analytics/counter-session-data/"
+                                        apiUrl="/api/rumpshift-analytics/counter-session-data/"
                                         defaultViewMode="individual_user"
                                         showControls={false}       // hide the controls in dropdown
                                         defaultUser={entry.user}   // pass the user dynamically
