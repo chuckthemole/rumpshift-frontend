@@ -4,8 +4,15 @@ import ReactDOM from 'react-dom/client';
 
 import Home from './tab_home';
 import FlavorPumpDashboard from './flavor_pump';
+import PasteurizerDashboard from './pasteurizer_dashboard';
+import MachineDashboard from './machine_dashboard';
 import MachineTaskManager from './machine_task_manager';
-import { AdminSiteSettingsDashboard, EntityTaskManager } from '@rumpushub/common-react';
+import {
+    LOGGER,
+    ApiPersistence,
+    AdminSiteSettingsDashboard,
+    EntityTaskManager
+} from '@rumpushub/common-react';
 import CounterSessionChart, { SimplifiedLevel } from '../buildshift/analytics/counter_session_chart';
 
 export default function Tabs() {
@@ -38,8 +45,17 @@ export default function Tabs() {
                         </a>
                     </li>
                     <li className={dashboardActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setDashboardActive(true); setActiveWindow(<FlavorPumpDashboard />); }}>
-                            <span>Flavor Pump</span>
+                        <a onClick={() => {
+                            clear(); setDashboardActive(true); setActiveWindow(
+                                <MachineDashboard
+                                    persistence={ApiPersistence(
+                                        "/api/arduino_consumer/arduino/get-machines/",
+                                        "RUMPSHIFT_API"
+                                    )}
+                                />
+                            );
+                        }}>
+                            <span>Machines</span>
                         </a>
                     </li>
                     <li className={machineTaskManagerActive ? 'is-active' : ''}>
@@ -57,7 +73,7 @@ export default function Tabs() {
                         <a onClick={() => {
                             clear(); setAnalyticsActive(true); setActiveWindow(
                                 <CounterSessionChart
-                                    apiUrl="http://localhost:8000/api/rumpshift-analytics/counter-session-data/"
+                                    apiUrl="/api/rumpshift-analytics/counter-session-data/"
                                     showControls={true}
                                     simplifiedLevel={SimplifiedLevel.DETAILED} />
                             );
