@@ -105,11 +105,13 @@ export function useMachine(machine_identifier) {
             LOGGER.debug(`[useMachine] Sending wakeup payload to ${endpoint}`);
 
             try {
-                // Stringify for logging safety
-                const serialized = JSON.stringify(payload);
-                LOGGER.debug(`[useMachine] Payload for ${machine_identifier}:`, serialized);
+                // Always wrap in { payload: ... }
+                const wrappedPayload = { payload };
+                const serialized = JSON.stringify(wrappedPayload);
+                LOGGER.debug(`[useMachine] Wrapped payload for ${machine_identifier}:`, serialized);
 
-                const response = await api.post(endpoint, payload);
+                // Send wrapped payload
+                const response = await api.post(endpoint, wrappedPayload);
 
                 if (!response?.data) {
                     throw new Error("Empty response received after updateWakeupPayload");
@@ -135,6 +137,7 @@ export function useMachine(machine_identifier) {
         },
         [api, machine_identifier, fetchMachine]
     );
+
 
     /**
      * Fetch when hook mounts or machine_identifier changes

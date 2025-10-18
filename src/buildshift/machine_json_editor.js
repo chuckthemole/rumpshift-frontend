@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { JsonEditor, LOGGER } from "@rumpushub/common-react";
+import {
+    JsonEditor,
+    LOGGER,
+    ComponentLoading
+} from "@rumpushub/common-react";
 import { useMachine } from "./hooks/use_machine";
 
 /**
@@ -7,14 +11,24 @@ import { useMachine } from "./hooks/use_machine";
  *
  * Displays and allows editing of a machine's wakeup_payload JSON data.
  * Uses JsonEditor to render and modify nested JSON.
+ *
+ * Features:
+ * - Intelligent loading from machine data
+ * - Save with minimum 1-second delay for UX
+ * - Refresh button
  */
 export default function MachineJsonEditor({ machine_id, title }) {
     const { machine, loading, error, refetch, updateWakeupPayload } = useMachine(machine_id);
+
+    // Local state for JSON editor
     const [savedData, setSavedData] = useState({});
     const [hasChanges, setHasChanges] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    // Load wakeup_payload from machine data
+    /**
+     * Load wakeup_payload from machine data
+     * Triggered whenever `machine` changes
+     */
     useEffect(() => {
         if (!machine) {
             LOGGER.warn(`No machine found for ID: ${machine_id}`);
@@ -22,64 +36,61 @@ export default function MachineJsonEditor({ machine_id, title }) {
         }
 
         try {
-            if (machine?.wakeup_payload) {
-                const payload =
-                    typeof machine.wakeup_payload === "string"
-                        ? JSON.parse(machine.wakeup_payload)
-                        : machine.wakeup_payload;
+            const payload = typeof machine.wakeup_payload === "string"
+                ? JSON.parse(machine.wakeup_payload)
+                : machine.wakeup_payload || {};
 
-                setSavedData(payload);
-                setHasChanges(false);
-                LOGGER.debug(`[MachineJsonEditor] Loaded wakeup_payload for ${machine_id}:`, payload);
-            } else {
-                LOGGER.warn(`[MachineJsonEditor] Machine ${machine_id} has no wakeup_payload`);
-            }
+            setSavedData(payload);
+            setHasChanges(false);
+            LOGGER.debug(`[MachineJsonEditor] Loaded wakeup_payload for ${machine_id}:`, payload);
         } catch (err) {
             LOGGER.error(`[MachineJsonEditor] Failed to parse wakeup_payload JSON for ${machine_id}:`, err);
         }
     }, [machine, machine_id]);
 
     /**
-     * Handles JSON save event from JsonEditor
+     * Handles saving JSON data to backend
+     * Ensures a minimum 1-second delay for the saving indicator
      */
     const handleSave = async (newData) => {
-        LOGGER.debug(`[MachineJsonEditor] handleSave called for ${machine_id}`, newData);
+        if (!newData || typeof newData !== "object") {
+            LOGGER.error(`[MachineJsonEditor] handleSave received invalid data for ${machine_id}`);
+            return;
+        }
+
+        setSaving(true);
+        setHasChanges(false);
+
+        const startTime = Date.now();
 
         try {
-            if (!newData || typeof newData !== "object") {
-                throw new Error("handleSave received invalid JSON data");
-            }
+            LOGGER.debug(`[MachineJsonEditor] Saving wakeup_payload for ${machine_id}:`, newData);
+            await updateWakeupPayload(newData);
+            setSavedData(newData);
 
-            setSaving(true);
-            setHasChanges(false);
+            // Refresh machine to confirm update
+            await refetch();
 
-            // Stringify before sending (helps catch serialization bugs)
-            const serializedPayload = JSON.stringify(newData);
-            LOGGER.debug(`[MachineJsonEditor] Serialized wakeup_payload for ${machine_id}:`, serializedPayload);
-
-            try {
-                // Persist to backend
-                await updateWakeupPayload(newData);
-                LOGGER.info(`[MachineJsonEditor] Successfully updated wakeup_payload for ${machine_id}`);
-                setSavedData(newData);
-
-                // Verify with backend
-                await refetch();
-                LOGGER.debug(`[MachineJsonEditor] Refetched machine ${machine_id} to verify update.`);
-            } catch (apiErr) {
-                LOGGER.error(`[MachineJsonEditor] API updateWakeupPayload failed for ${machine_id}:`, apiErr);
-                throw apiErr; // propagate for outer catch
-            }
+            LOGGER.info(`[MachineJsonEditor] Successfully saved wakeup_payload for ${machine_id}`);
         } catch (err) {
-            LOGGER.error(`[MachineJsonEditor] Error saving wakeup_payload for ${machine_id}:`, err);
+            LOGGER.error(`[MachineJsonEditor] Failed to save wakeup_payload for ${machine_id}:`, err);
+            setHasChanges(true); // allow retry
         } finally {
-            setSaving(false);
+            // Ensure minimum 1-second saving indicator
+            const elapsed = Date.now() - startTime;
+            const remaining = 1000 - elapsed;
+            setTimeout(() => setSaving(false), remaining > 0 ? remaining : 0);
         }
     };
 
+    // -----------------------
+    // Render states
+    // -----------------------
+
     if (loading) {
         return (
-            <div className="p-6 text-gray-400">
+            <div className="p-6 has-text-grey-light">
+                <ComponentLoading />
                 <p>Loading machine data...</p>
             </div>
         );
@@ -88,41 +99,45 @@ export default function MachineJsonEditor({ machine_id, title }) {
     if (error) {
         LOGGER.error(`[MachineJsonEditor] Error loading machine ${machine_id}:`, error);
         return (
-            <div className="p-6 text-red-400">
+            <div className="p-6 notification is-danger is-light">
                 <p>Error loading machine: {error.toString()}</p>
-                <button
-                    onClick={refetch}
-                    className="mt-4 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-                >
-                    Retry
-                </button>
+                <button className="button is-info mt-4" onClick={refetch}>Retry</button>
             </div>
         );
     }
 
     if (!machine) {
         return (
-            <div className="p-6 text-gray-400">
+            <div className="p-6 has-text-grey-light">
                 <p>No machine found for ID: {machine_id}</p>
             </div>
         );
     }
 
+    // -----------------------
+    // Main editor UI
+    // -----------------------
     return (
-        <div className="p-6 bg-gray-800 min-h-screen text-white">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">
-                    Machine: {machine.alias || machine.ip}
-                </h1>
-                <button
-                    onClick={refetch}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-                    disabled={saving}
-                >
-                    {saving ? "Saving..." : "Refresh"}
-                </button>
+        <div className="p-6 box has-background-grey-lighter has-text-black">
+            {/* Header with machine info and refresh */}
+            <div className="level mb-4">
+                <div className="level-left">
+                    <h1 className="title is-4 has-text-black">
+                        Machine: {machine.alias || machine.ip}
+                    </h1>
+                </div>
+                <div className="level-right">
+                    <button
+                        className="button is-info"
+                        onClick={refetch}
+                        disabled={saving}
+                    >
+                        {saving ? "Saving..." : "Refresh"}
+                    </button>
+                </div>
             </div>
 
+            {/* JSON Editor */}
             <JsonEditor
                 data={savedData}
                 title={title}
@@ -133,15 +148,14 @@ export default function MachineJsonEditor({ machine_id, title }) {
                 onSave={handleSave}
             />
 
-
-            {hasChanges && (
-                <p className="text-yellow-400 mt-2 italic">
+            {/* Status messages */}
+            {hasChanges && !saving && (
+                <p className="has-text-warning mt-2 is-italic">
                     Unsaved changes detected
                 </p>
             )}
-
             {saving && (
-                <p className="text-blue-400 mt-2 italic">
+                <p className="has-text-info mt-2 is-italic">
                     Saving changes to backend...
                 </p>
             )}
