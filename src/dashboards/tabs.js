@@ -59,7 +59,7 @@ export default function Tabs() {
                         </a>
                     </li>
                     <li className={machineTaskManagerActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setMachineTaskManagerActive(true); setActiveWindow(<EntityTaskManager />); }}>
+                        <a onClick={() => { clear(); setMachineTaskManagerActive(true); setActiveWindow(<MachineTaskManager />); }}>
                             <span>Machine Task Manager</span>
                         </a>
                     </li>
