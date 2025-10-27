@@ -69,7 +69,7 @@
                 "check-global-links": "npm list -g --depth=0 --link=true",
                 "install:dev": "npm uninstall @rumpushub/common-react && npm link @rumpushub/common-react",
                 "uninstall:dev": "npm uninstall @rumpushub/common-react",
-                "install:prod": "npm uninstall @rumpushub/common-react && npm install @rumpushub/common-react@^1.3.0"
+                "install:prod": "npm uninstall @rumpushub/common-react && npm install @rumpushub/common-react@latest"
         },
         "devDependencies": {
                 "@babel/cli": "^7.20.7",
