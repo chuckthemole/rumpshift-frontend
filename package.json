@@ -1,111 +1,115 @@
 {
-        "name": "rumpshift-frontend",
-        "version": "0.1.0",
-        "private": true,
-        "description": "Mountjoy UI for Arduino devices",
-        "repository": {
-                "type": "git",
-                "url": "git@github.com:"
-        },
-        "keywords": [
-                "rest",
-                "hateoas",
-                "spring",
-                "data",
-                "react"
+    "name": "rumpshift-frontend",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Mountjoy UI for Arduino devices",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:"
+    },
+    "keywords": [
+        "rest",
+        "hateoas",
+        "spring",
+        "data",
+        "react"
+    ],
+    "author": "Charles Thomas",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^6.4.0",
+        "@fortawesome/free-brands-svg-icons": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.4.0",
+        "@fortawesome/react-fontawesome": "^0.2.0",
+        "@testing-library/dom": "^10.4.0",
+        "@testing-library/jest-dom": "^6.6.3",
+        "@testing-library/react": "^16.3.0",
+        "@testing-library/user-event": "^13.5.0",
+        "aws-sdk": "^2.1655.0",
+        "axios": "^1.10.0",
+        "bulma": "^0.9.4",
+        "consola": "^3.4.2",
+        "dotenv": "^17.0.0",
+        "json-edit-react": "^1.29.0",
+        "lucide-react": "^0.525.0",
+        "qs": "^6.14.0",
+        "quill": "^1.3.7",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-modal": "^3.16.1",
+        "react-quill": "^2.0.0",
+        "react-router-dom": "^6.14.0",
+        "react-scripts": "5.0.1",
+        "react-tooltip": "^5.18.0",
+        "recharts": "^3.2.1",
+        "rest": "^1.3.2",
+        "sass": "^1.89.2",
+        "swagger-ui": "^5.30.0",
+        "swagger-ui-react": "^5.30.0",
+        "swr": "^2.0.3",
+        "web-vitals": "^2.1.4"
+    },
+    "scripts": {
+        "start": "webpack serve --config config/dev/webpack.config.js --open",
+        "watch": "webpack --watch -d --output ./target/classes/static/built/app.bundle.js",
+        "build": "echo Building frontend && echo Running webpack... && webpack --config config/dev/webpack.config.js",
+        "build:watch": "echo Building frontend in watch mode && echo Running webpack... && webpack --config config/dev/webpack.config.js --watch",
+        "check": "echo Checking frontend && npm run lint && npm run test",
+        "lint": "echo Linting frontend",
+        "test": "echo Testing frontend && react-scripts test",
+        "eject": "react-scripts eject",
+        "sass-dev-build": "sass --verbose --load-path=./node_modules ./src/styles/sass:./generated/css",
+        "bulma-dev-build": "sass --verbose --load-path=./node_modules ./src/styles/sass/rumpus-styles.scss ./generated/css/rumpus-styles.css",
+        "clean:sass": "echo Cleaning sass files && rm -rf generated",
+        "bulma-live-build": "sass --no-source-map --load-path=./node_modules ./src/styles/sass/rumpus-styles.scss ./generated/css/rumpus-styles.css",
+        "bulma-build-watch": "npm run css-build -- --watch",
+        "bulma-watch": "npm run css-watch",
+        "preinstall": "./config/dev/scripts/preinstall.sh",
+        "postinstall": "./config/dev/scripts/postinstall.sh",
+        "clean": "echo Cleaning frontend && rm -rf node_modules package-lock.json generated",
+        "fresh": "npm run clean && npm install",
+        "check-global-links": "npm list -g --depth=0 --link=true",
+        "install:dev": "npm uninstall @rumpushub/common-react && npm link @rumpushub/common-react",
+        "uninstall:dev": "npm uninstall @rumpushub/common-react",
+        "install:prod": "npm uninstall @rumpushub/common-react && npm install @rumpushub/common-react@latest"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.20.7",
+        "@babel/core": "^7.20.12",
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
+        "@babel/preset-env": "^7.20.2",
+        "@babel/preset-react": "^7.18.6",
+        "@babel/preset-typescript": "^7.18.6",
+        "babel-loader": "^8.3.0",
+        "babel-preset-env": "^1.7.0",
+        "buffer": "^6.0.3",
+        "css-loader": "^6.8.1",
+        "html-loader": "^0.4.5",
+        "html-webpack-plugin": "^5.6.3",
+        "parchment": "^2.0.1",
+        "stream-browserify": "^3.0.0",
+        "style-loader": "^3.3.3",
+        "typescript": "^4.9.5",
+        "webpack": "^5.88.2",
+        "webpack-cli": "^5.1.4",
+        "webpack-dev-server": "^5.2.2"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app",
+            "react-app/jest"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
         ],
-        "author": "Charles Thomas",
-        "license": "Apache-2.0",
-        "dependencies": {
-                "@fortawesome/fontawesome-svg-core": "^6.4.0",
-                "@fortawesome/free-brands-svg-icons": "^6.7.2",
-                "@fortawesome/free-solid-svg-icons": "^6.4.0",
-                "@fortawesome/react-fontawesome": "^0.2.0",
-                "@testing-library/dom": "^10.4.0",
-                "@testing-library/jest-dom": "^6.6.3",
-                "@testing-library/react": "^16.3.0",
-                "@testing-library/user-event": "^13.5.0",
-                "aws-sdk": "^2.1655.0",
-                "axios": "^1.10.0",
-                "bulma": "^0.9.4",
-                "consola": "^3.4.2",
-                "dotenv": "^17.0.0",
-                "json-edit-react": "^1.29.0",
-                "lucide-react": "^0.525.0",
-                "qs": "^6.14.0",
-                "quill": "^1.3.7",
-                "react": "^18.2.0",
-                "react-dom": "^18.2.0",
-                "react-modal": "^3.16.1",
-                "react-quill": "^2.0.0",
-                "react-router-dom": "^6.14.0",
-                "react-scripts": "5.0.1",
-                "react-tooltip": "^5.18.0",
-                "recharts": "^3.2.1",
-                "rest": "^1.3.2",
-                "sass": "^1.89.2",
-                "swr": "^2.0.3",
-                "web-vitals": "^2.1.4"
-        },
-        "scripts": {
-                "start": "webpack serve --config config/dev/webpack.config.js --open",
-                "watch": "webpack --watch -d --output ./target/classes/static/built/app.bundle.js",
-                "build": "echo Building frontend && echo Running webpack... && webpack --config config/dev/webpack.config.js",
-                "build:watch": "echo Building frontend in watch mode && echo Running webpack... && webpack --config config/dev/webpack.config.js --watch",
-                "check": "echo Checking frontend && npm run lint && npm run test",
-                "lint": "echo Linting frontend",
-                "test": "echo Testing frontend && react-scripts test",
-                "eject": "react-scripts eject",
-                "sass-dev-build": "sass --verbose --load-path=./node_modules ./src/styles/sass:./generated/css",
-                "bulma-dev-build": "sass --verbose --load-path=./node_modules ./src/styles/sass/rumpus-styles.scss ./generated/css/rumpus-styles.css",
-                "clean:sass": "echo Cleaning sass files && rm -rf generated",
-                "bulma-live-build": "sass --no-source-map --load-path=./node_modules ./src/styles/sass/rumpus-styles.scss ./generated/css/rumpus-styles.css",
-                "bulma-build-watch": "npm run css-build -- --watch",
-                "bulma-watch": "npm run css-watch",
-                "preinstall": "./config/dev/scripts/preinstall.sh",
-                "postinstall": "./config/dev/scripts/postinstall.sh",
-                "clean": "echo Cleaning frontend && rm -rf node_modules package-lock.json generated",
-                "fresh": "npm run clean && npm install",
-                "check-global-links": "npm list -g --depth=0 --link=true",
-                "install:dev": "npm uninstall @rumpushub/common-react && npm link @rumpushub/common-react",
-                "uninstall:dev": "npm uninstall @rumpushub/common-react",
-                "install:prod": "npm uninstall @rumpushub/common-react && npm install @rumpushub/common-react@latest"
-        },
-        "devDependencies": {
-                "@babel/cli": "^7.20.7",
-                "@babel/core": "^7.20.12",
-                "@babel/plugin-proposal-class-properties": "^7.18.6",
-                "@babel/preset-env": "^7.20.2",
-                "@babel/preset-react": "^7.18.6",
-                "@babel/preset-typescript": "^7.18.6",
-                "babel-loader": "^8.3.0",
-                "babel-preset-env": "^1.7.0",
-                "css-loader": "^6.8.1",
-                "html-loader": "^0.4.5",
-                "html-webpack-plugin": "^5.6.3",
-                "parchment": "^2.0.1",
-                "style-loader": "^3.3.3",
-                "typescript": "^4.9.5",
-                "webpack": "^5.88.2",
-                "webpack-cli": "^5.1.4",
-                "webpack-dev-server": "^5.2.2"
-        },
-        "eslintConfig": {
-                "extends": [
-                        "react-app",
-                        "react-app/jest"
-                ]
-        },
-        "browserslist": {
-                "production": [
-                        ">0.2%",
-                        "not dead",
-                        "not op_mini all"
-                ],
-                "development": [
-                        "last 1 chrome version",
-                        "last 1 firefox version",
-                        "last 1 safari version"
-                ]
-        }
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
 }

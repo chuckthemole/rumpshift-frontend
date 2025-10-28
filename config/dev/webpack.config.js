@@ -35,7 +35,11 @@ module.exports = {
             'react-router-dom': path.resolve(__dirname, '../../node_modules/react-router-dom')
         },
         extensions: ['.mjs', '.js', '.ts', '.svg'],
-        symlinks: true
+        symlinks: true,
+        fallback: {
+            stream: require.resolve('stream-browserify'),
+            buffer: require.resolve('buffer/')
+        }
     },
     plugins: [
         new webpack.DefinePlugin({
@@ -70,6 +74,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './public/index.html', // make sure this file exists!
             filename: 'index.html'
+        }),
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
         }),
     ],
     devServer: {

@@ -14,6 +14,7 @@ import {
     EntityTaskManager
 } from '@rumpushub/common-react';
 import CounterSessionChart, { SimplifiedLevel } from '../buildshift/analytics/counter_session_chart';
+import SpringbootApiDocs from '../buildshift/openapi/springboot_api_docs';
 
 export default function Tabs() {
 
@@ -24,6 +25,7 @@ export default function Tabs() {
     const [machineTaskManagerActive, setMachineTaskManagerActive] = useState(false);
     const [settingsActive, setSettingsActive] = useState(false);
     const [analyticsActive, setAnalyticsActive] = useState(false);
+    const [apidocsActive, setApiDocsActive] = useState(false);
 
     const [activeWindow, setActiveWindow] = useState(<Home />);
 
@@ -33,6 +35,7 @@ export default function Tabs() {
         setMachineTaskManagerActive(false);
         setSettingsActive(false);
         setAnalyticsActive(false);
+        setApiDocsActive(false);
     }
 
     return (
@@ -81,6 +84,17 @@ export default function Tabs() {
                             <span>Analytics</span>
                         </a>
                     </li>
+
+                    <li className={apidocsActive ? 'is-active' : ''}>
+                        <a onClick={() => {
+                            clear(); setApiDocsActive(true); setActiveWindow(
+                                <SpringbootApiDocs />
+                            );
+                        }}>
+                            <span>Apis</span>
+                        </a>
+                    </li>
+
                 </ul>
             </div>
             <div className='is-centered has-background-light box'>{activeWindow}</div>
