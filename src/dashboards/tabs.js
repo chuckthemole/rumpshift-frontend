@@ -14,7 +14,7 @@ import {
     EntityTaskManager
 } from '@rumpushub/common-react';
 import CounterSessionChart, { SimplifiedLevel } from '../buildshift/analytics/counter_session_chart';
-import SpringbootApiDocs from '../buildshift/openapi/springboot_api_docs';
+import ApiDocsSelector from '../buildshift/openapi/api_docs_selector';
 
 export default function Tabs() {
 
@@ -88,7 +88,7 @@ export default function Tabs() {
                     <li className={apidocsActive ? 'is-active' : ''}>
                         <a onClick={() => {
                             clear(); setApiDocsActive(true); setActiveWindow(
-                                <SpringbootApiDocs />
+                                <ApiDocsSelector />
                             );
                         }}>
                             <span>Apis</span>
