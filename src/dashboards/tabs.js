@@ -1,103 +1,75 @@
-import React from 'react';
-import { useState } from 'react';
-import ReactDOM from 'react-dom/client';
-
-import Home from './tab_home';
-import FlavorPumpDashboard from './flavor_pump';
-import PasteurizerDashboard from './pasteurizer_dashboard';
-import MachineDashboard from './machine_dashboard';
-import MachineTaskManager from './machine_task_manager';
+import React, { useState } from "react";
+import Home from "./tab_home";
+import FlavorPumpDashboard from "./flavor_pump";
+import PasteurizerDashboard from "./pasteurizer_dashboard";
+import MachineDashboard from "./machine_dashboard";
+import MachineTaskManager from "./machine_task_manager";
+import LogDashboard from "./log_dashboard";
 import {
     LOGGER,
     ApiPersistence,
     AdminSiteSettingsDashboard,
-    EntityTaskManager
-} from '@rumpushub/common-react';
-import CounterSessionChart, { SimplifiedLevel } from '../buildshift/analytics/counter_session_chart';
-import ApiDocsSelector from '../buildshift/openapi/api_docs_selector';
+    EntityTaskManager,
+} from "@rumpushub/common-react";
+import CounterSessionChart, { SimplifiedLevel } from "../buildshift/analytics/counter_session_chart";
+import ApiDocsSelector from "../buildshift/openapi/api_docs_selector";
 
 export default function Tabs() {
+    // Define tabs as an array of objects to simplify state management
+    const tabs = [
+        { key: "home", label: "Home", component: <Home /> },
+        {
+            key: "machines",
+            label: "Machines",
+            component: (
+                <MachineDashboard
+                    persistence={ApiPersistence(
+                        "/api/arduino_consumer/arduino/get-machines/",
+                        "RUMPSHIFT_API"
+                    )}
+                />
+            ),
+        },
+        { key: "machineTaskManager", label: "Machine Task Manager", component: <MachineTaskManager /> },
+        { key: "siteSettings", label: "Site Settings", component: <AdminSiteSettingsDashboard /> },
+        {
+            key: "analytics",
+            label: "Analytics",
+            component: (
+                <CounterSessionChart
+                    apiUrl="/api/rumpshift-analytics/counter-session-data/"
+                    showControls={true}
+                    simplifiedLevel={SimplifiedLevel.DETAILED}
+                />
+            ),
+        },
+        { key: "apis", label: "Apis", component: <ApiDocsSelector /> },
+        { key: "logs", label: "Logs", component: <LogDashboard /> },
+    ];
 
-    const is_active = 'is-active';
+    const [activeTab, setActiveTab] = useState("home");
 
-    const [homeActive, setHomeActive] = useState(true);
-    const [dashboardActive, setDashboardActive] = useState(false);
-    const [machineTaskManagerActive, setMachineTaskManagerActive] = useState(false);
-    const [settingsActive, setSettingsActive] = useState(false);
-    const [analyticsActive, setAnalyticsActive] = useState(false);
-    const [apidocsActive, setApiDocsActive] = useState(false);
+    const handleTabClick = (key) => {
+        LOGGER.debug(`[Tabs] Switching to tab: ${key}`);
+        setActiveTab(key);
+    };
 
-    const [activeWindow, setActiveWindow] = useState(<Home />);
-
-    function clear() {
-        setHomeActive(false);
-        setDashboardActive(false);
-        setMachineTaskManagerActive(false);
-        setSettingsActive(false);
-        setAnalyticsActive(false);
-        setApiDocsActive(false);
-    }
+    const activeComponent = tabs.find((tab) => tab.key === activeTab)?.component;
 
     return (
         <>
             <div className="tabs is-boxed">
                 <ul>
-                    <li className={homeActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setHomeActive(true); setActiveWindow(<Home />); }}>
-                            <span>Home</span>
-                        </a>
-                    </li>
-                    <li className={dashboardActive ? 'is-active' : ''}>
-                        <a onClick={() => {
-                            clear(); setDashboardActive(true); setActiveWindow(
-                                <MachineDashboard
-                                    persistence={ApiPersistence(
-                                        "/api/arduino_consumer/arduino/get-machines/",
-                                        "RUMPSHIFT_API"
-                                    )}
-                                />
-                            );
-                        }}>
-                            <span>Machines</span>
-                        </a>
-                    </li>
-                    <li className={machineTaskManagerActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setMachineTaskManagerActive(true); setActiveWindow(<MachineTaskManager />); }}>
-                            <span>Machine Task Manager</span>
-                        </a>
-                    </li>
-                    <li className={settingsActive ? 'is-active' : ''}>
-                        <a onClick={() => { clear(); setSettingsActive(true); setActiveWindow(<AdminSiteSettingsDashboard />); }}>
-                            <span>Site Settings</span>
-                        </a>
-                    </li>
-
-                    <li className={analyticsActive ? 'is-active' : ''}>
-                        <a onClick={() => {
-                            clear(); setAnalyticsActive(true); setActiveWindow(
-                                <CounterSessionChart
-                                    apiUrl="/api/rumpshift-analytics/counter-session-data/"
-                                    showControls={true}
-                                    simplifiedLevel={SimplifiedLevel.DETAILED} />
-                            );
-                        }}>
-                            <span>Analytics</span>
-                        </a>
-                    </li>
-
-                    <li className={apidocsActive ? 'is-active' : ''}>
-                        <a onClick={() => {
-                            clear(); setApiDocsActive(true); setActiveWindow(
-                                <ApiDocsSelector />
-                            );
-                        }}>
-                            <span>Apis</span>
-                        </a>
-                    </li>
-
+                    {tabs.map((tab) => (
+                        <li key={tab.key} className={activeTab === tab.key ? "is-active" : ""}>
+                            <a onClick={() => handleTabClick(tab.key)}>
+                                <span>{tab.label}</span>
+                            </a>
+                        </li>
+                    ))}
                 </ul>
             </div>
-            <div className='is-centered has-background-light box'>{activeWindow}</div>
+            <div className="is-centered has-background-light box">{activeComponent}</div>
         </>
-    )
+    );
 }
