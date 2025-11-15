@@ -13,25 +13,31 @@ import {
 } from "@rumpushub/common-react";
 import CounterSessionChart, { SimplifiedLevel } from "../buildshift/analytics/counter_session_chart";
 import ApiDocsSelector from "../buildshift/openapi/api_docs_selector";
+import RecipeCalculator from "./recipe_calculator";
 
 export default function Tabs() {
     // Define tabs as an array of objects to simplify state management
     const tabs = [
         { key: "home", label: "Home", component: <Home /> },
+
         {
             key: "machines",
             label: "Machines",
             component: (
                 <MachineDashboard
-                    persistence={ApiPersistence(
-                        "/api/arduino_consumer/arduino/get-machines/",
-                        "RUMPSHIFT_API"
-                    )}
+                    persistence={
+                        ApiPersistence(
+                            "/api/arduino_consumer/arduino/get-machines/",
+                            "RUMPSHIFT_API"
+                        )}
                 />
             ),
         },
+
         { key: "machineTaskManager", label: "Machine Task Manager", component: <MachineTaskManager /> },
+
         { key: "siteSettings", label: "Site Settings", component: <AdminSiteSettingsDashboard /> },
+
         {
             key: "analytics",
             label: "Analytics",
@@ -43,8 +49,12 @@ export default function Tabs() {
                 />
             ),
         },
+
         { key: "apis", label: "Apis", component: <ApiDocsSelector /> },
+
         { key: "logs", label: "Logs", component: <LogDashboard /> },
+
+        { key: "recipeCalculator", label: "Recipe Calculator", component: <RecipeCalculator /> },
     ];
 
     const [activeTab, setActiveTab] = useState("home");
@@ -69,7 +79,10 @@ export default function Tabs() {
                     ))}
                 </ul>
             </div>
-            <div className="is-centered has-background-light box">{activeComponent}</div>
+
+            <div className="is-centered has-background-light box">
+                {activeComponent}
+            </div>
         </>
     );
 }
