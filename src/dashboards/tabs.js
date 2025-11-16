@@ -54,7 +54,22 @@ export default function Tabs() {
 
         { key: "logs", label: "Logs", component: <LogDashboard /> },
 
-        { key: "recipeCalculator", label: "Recipe Calculator", component: <RecipeCalculator /> },
+        {
+            key: "recipeCalculator",
+            label: "Recipe Calculator",
+            component: (
+                <RecipeCalculator
+                    controllingInputs={
+                        {
+                            "Hayes Jammer": ["Run Date", "Cases"],
+                            "Soma Star": ["Run Date", "Cases"],
+                            "Good Boy ETH": ["Run Date", "Cases"],
+                            "Mission Freestyler": ["Run Date", "Cases"]
+                        }
+                    }
+                />
+            ),
+        },
     ];
 
     const [activeTab, setActiveTab] = useState("home");
