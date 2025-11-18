@@ -1,15 +1,14 @@
 /**
- * A component for loading Notion-based recipes,
- * identifying which ingredients are user-controlled, and computing
- * dependent ingredient values.
+ * RecipeCalculator Component
  *
- * New Feature:
- *  - Accepts `controllingInputs` prop: a map where
- *      key = recipe name (string)
- *      value = array of input ingredient keys (strings)
+ * Loads recipe records from Notion, extracts numeric fields,
+ * identifies editable fields based on a controllingInputs map,
+ * and computes dependent values via the backend.
  *
- *  - Only the ingredients listed in controllingInputs[recipeName]
- *    are editable. All others become dependent read-only values.
+ * Props:
+ *  - controllingInputs: {
+ *        [recipeName]: [array of keys that are editable]
+ *    }
  */
 
 import React, { useEffect, useState } from "react";
@@ -21,7 +20,7 @@ import {
 } from "@rumpushub/common-react";
 
 /* ---------------------------------------------
- * API ENDPOINT CONSTANTS
+ * API CONSTANTS
  * --------------------------------------------- */
 const API_NAME = "RUMPSHIFT_API";
 
@@ -31,20 +30,19 @@ const RECIPE_LIST_ENDPOINT =
 const pagePropertiesUrl = (cleanedId) =>
     `/api/notion/page_properties/${cleanedId}?integration=NOTION_API_KEY_PROJECT_MANAGEMENT`;
 
-const computeRecipeUrl = (recipeId) => `/api/notion/recipes/compute/${recipeId}/?integration=NOTION_API_KEY_PROJECT_MANAGEMENT`;
+const computeRecipeUrl = (recipeId) =>
+    `/api/notion/recipes/compute/${recipeId}/?integration=NOTION_API_KEY_PROJECT_MANAGEMENT`;
 
 /* ---------------------------------------------
  * COMPONENT
  * --------------------------------------------- */
-
 export default function RecipeCalculator({ controllingInputs = {} }) {
-    /* ---------------------------------------------
-     * STATE
-     * --------------------------------------------- */
     const [recipes, setRecipes] = useState([]);
     const [selectedRecipeId, setSelectedRecipeId] = useState(null);
 
     const [selectedRecipe, setSelectedRecipe] = useState(null);
+    const [selectedRecipePage, setSelectedRecipePage] = useState(null);
+
     const [inputs, setInputs] = useState({});
     const [result, setResult] = useState(null);
 
@@ -57,7 +55,7 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
     const api = getNamedApi(API_NAME);
 
     /* ---------------------------------------------
-     * LOAD RECIPE LIST
+     * LOAD LIST OF RECIPES
      * --------------------------------------------- */
     useEffect(() => {
         const loadRecipes = async () => {
@@ -66,17 +64,16 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
                 setError(null);
 
                 const response = await api.get(RECIPE_LIST_ENDPOINT);
-                const list = response?.data?.results ?? [];
+                const results = response?.data?.results ?? [];
+                setRecipes(results);
 
-                setRecipes(list);
-
-                if (list.length > 0) {
-                    setSelectedRecipeId(list[0].id);
+                if (results.length > 0) {
+                    setSelectedRecipeId(results[0].id);
                 }
 
-                LOGGER.info("[RecipeCalculator] Loaded recipe list", list);
+                LOGGER.info("[RecipeCalculator] Loaded recipe list", results);
             } catch (err) {
-                LOGGER.error("[RecipeCalculator] Failed loading recipe list", err);
+                LOGGER.error("[RecipeCalculator] Could not load recipe list", err);
                 setError("Failed to load recipes.");
             } finally {
                 setInitialLoading(false);
@@ -87,7 +84,7 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
     }, []);
 
     /* ---------------------------------------------
-     * LOAD DETAILS FOR SELECTED RECIPE
+     * LOAD SELECTED RECIPE DETAILS
      * --------------------------------------------- */
     useEffect(() => {
         if (!selectedRecipeId) return;
@@ -98,6 +95,7 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
                 setError(null);
 
                 setSelectedRecipe(null);
+                setSelectedRecipePage(null);
                 setInputs({});
                 setResult(null);
 
@@ -105,38 +103,41 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
                 const response = await api.get(pagePropertiesUrl(cleanedId));
 
                 const page = response?.data ?? null;
-                if (!page) throw new Error("No page data returned");
+                if (!page) throw new Error("Page returned no data.");
 
-                LOGGER.info("[RecipeCalculator] Page contents:", page);
+                setSelectedRecipePage(page);
 
-                /* Extract editable + dependent fields */
-                const numericFields = Object.entries(page)
+                LOGGER.info("[RecipeCalculator] Loaded page properties:", page);
+
+                const fields = Object.entries(page)
                     .map(([key, value]) => {
-                        if (!value) return null;
+                        // include null values (as blank numeric inputs)
+                        if (value === null) {
+                            return { key, label: key, type: "number" };
+                        }
 
-                        // direct number
+                        // skip only undefined
+                        if (value === undefined) return null;
+
                         if (typeof value === "number") {
                             return { key, label: key, type: "number" };
                         }
 
-                        // simple date
-                        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-                            return { key, label: key, type: "date" };
+                        if (value?.type === "number") {
+                            return { key, label: key, type: "number" };
                         }
 
-                        // Notion object: number or date formulas
-                        if (typeof value === "object") {
-                            if (value.type === "number") {
+                        if (value?.type === "formula") {
+                            if (value.formula?.type === "number") {
                                 return { key, label: key, type: "number" };
                             }
-                            if (value.type === "formula") {
-                                if (value.formula?.type === "number") {
-                                    return { key, label: key, type: "number" };
-                                }
-                                if (value.formula?.type === "date") {
-                                    return { key, label: key, type: "date" };
-                                }
+                            if (value.formula?.type === "date") {
+                                return { key, label: key, type: "date" };
                             }
+                        }
+
+                        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                            return { key, label: key, type: "date" };
                         }
 
                         return null;
@@ -144,22 +145,30 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
                     .filter(Boolean);
 
                 const recipeName = page.Name || "Unnamed";
-
-                const recipe = {
+                setSelectedRecipe({
                     id: selectedRecipeId,
                     name: recipeName,
-                    inputs: numericFields
-                };
+                    inputs: fields
+                });
 
-                setSelectedRecipe(recipe);
-
-                /* Initialize input state */
+                // Prepare initial input values (null → "")
                 const defaults = {};
-                numericFields.forEach(f => (defaults[f.key] = ""));
-                setInputs(defaults);
+                fields.forEach((field) => {
+                    const v = page[field.key];
+                    let num = null;
 
+                    if (typeof v === "number") num = v;
+                    else if (v?.type === "number") num = v.number;
+                    else if (v?.type === "formula" && v.formula?.type === "number") {
+                        num = v.formula.number;
+                    }
+
+                    defaults[field.key] = num ?? "";
+                });
+
+                setInputs(defaults);
             } catch (err) {
-                LOGGER.error("[RecipeCalculator] Failed loading recipe details", err);
+                LOGGER.error("[RecipeCalculator] Could not load recipe details", err);
                 setError("Failed to load recipe details.");
             } finally {
                 setDetailsLoading(false);
@@ -170,17 +179,14 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
     }, [selectedRecipeId]);
 
     /* ---------------------------------------------
-     * INPUT CHANGE
+     * HANDLE INPUT CHANGE
      * --------------------------------------------- */
     const handleInputChange = (key, value) => {
-        setInputs((prev) => ({
-            ...prev,
-            [key]: value
-        }));
+        setInputs((prev) => ({ ...prev, [key]: value }));
     };
 
     /* ---------------------------------------------
-     * SUBMIT & COMPUTE
+     * SUBMIT COMPUTE REQUEST
      * --------------------------------------------- */
     const handleSubmit = async () => {
         if (!selectedRecipe) return;
@@ -193,7 +199,8 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
             const url = computeRecipeUrl(selectedRecipe.id);
             const response = await api.post(url, { inputs });
 
-            LOGGER.info("[RecipeCalculator] Computed result:", response?.data);
+            LOGGER.info("[RecipeCalculator] Compute result:", response?.data);
+
             setResult(response?.data ?? {});
         } catch (err) {
             LOGGER.error("[RecipeCalculator] Compute failed", err);
@@ -207,34 +214,72 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
      * RENDER
      * --------------------------------------------- */
 
-    if (initialLoading) return <ComponentLoading />;
+    if (initialLoading) {
+        return <ComponentLoading />;
+    }
 
     const recipeOptions = recipes.map((r) => ({
         label: r.properties?.Name?.title?.[0]?.plain_text || "Unnamed",
         value: r.id
     }));
 
-    /* Determine which inputs are user-controlled */
-    const controllingList =
-        selectedRecipe?.name && controllingInputs[selectedRecipe.name]
-            ? controllingInputs[selectedRecipe.name]
-            : [];
+    const recipeName = selectedRecipe?.name;
+    const editableKeys =
+        recipeName && controllingInputs[recipeName]
+            ? new Set(controllingInputs[recipeName])
+            : new Set();
 
-    /* Quick lookup for performance */
-    const controllingSet = new Set(controllingList);
+    const editableFields = selectedRecipe?.inputs.filter((f) =>
+        editableKeys.has(f.key)
+    ) || [];
 
-    /* Split fields */
-    const editableFields =
-        selectedRecipe?.inputs.filter(f => controllingSet.has(f.key)) || [];
+    const dependentFields = [];
 
-    const dependentFields =
-        selectedRecipe?.inputs.filter(f => !controllingSet.has(f.key)) || [];
+    // Page-based dependent fields
+    selectedRecipe?.inputs.forEach((f) => {
+        if (!editableKeys.has(f.key)) {
+            const v = selectedRecipePage?.[f.key];
+            let num = null;
+
+            if (typeof v === "number") num = v;
+            else if (v?.type === "number") num = v.number;
+            else if (v?.type === "formula" && v.formula?.type === "number") {
+                num = v.formula.number;
+            }
+
+            dependentFields.push({
+                key: f.key,
+                label: f.label,
+                type: f.type,
+                value: num
+            });
+        }
+    });
+
+    // Computed fields
+    if (result) {
+        Object.entries(result).forEach(([key, value]) => {
+            const exists = dependentFields.some((f) => f.key === key);
+            if (!exists && !editableKeys.has(key)) {
+                dependentFields.push({
+                    key,
+                    label: key,
+                    type: typeof value === "number" ? "number" : "text",
+                    value
+                });
+            }
+        });
+    }
 
     return (
         <div className="p-4">
             <h2 className="title is-4">Recipe Calculator</h2>
 
-            {error && <div className="notification is-danger is-light">{error}</div>}
+            {error && (
+                <div className="notification is-danger is-light">
+                    {error}
+                </div>
+            )}
 
             {/* Recipe Selector */}
             <div className="mb-4">
@@ -247,40 +292,58 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
                 />
             </div>
 
-            {/* Loading Recipe Details */}
+            {/* Computed Result Block */}
+            {result && (
+                <div className="notification is-info mb-4">
+                    <h4 className="title is-6">Computed Results</h4>
+                    <pre style={{ whiteSpace: "pre-wrap" }}>
+                        {JSON.stringify(result, null, 2)}
+                    </pre>
+
+                    {selectedRecipeId && (
+                        <p className="mt-2">
+                            <a
+                                href={`https://www.notion.so/${selectedRecipeId.replace(/-/g, "")}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Open in Notion
+                            </a>
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {/* Loading Details */}
             {detailsLoading && (
                 <div className="box">
                     <ComponentLoading text="Loading recipe..." />
                 </div>
             )}
 
-            {/* Main Input Form */}
+            {/* Input Form */}
             {!detailsLoading && selectedRecipe && (
                 <div className="box">
                     <h3 className="title is-5">{selectedRecipe.name}</h3>
 
-                    {/* Compute Button moved to top */}
                     <button
-                        className={`button is-primary mb-4 ${submitLoading ? "is-loading" : ""}`}
+                        className={`button is-primary mb-4 ${submitLoading ? "is-loading" : ""
+                            }`}
                         onClick={handleSubmit}
                     >
                         Compute Recipe
                     </button>
 
-                    {/* ---------------------------------------
-            Editable Inputs Section
-        ---------------------------------------- */}
+                    {/* Editable Inputs */}
                     <h4 className="title is-6 mb-2">Input Fields</h4>
-
                     {editableFields.map((field) => (
                         <div className="field" key={field.key}>
                             <label className="label">{field.label}</label>
                             <div className="control">
                                 <input
-                                    type={field.type}
                                     className="input"
+                                    type={field.type}
                                     value={inputs[field.key]}
-                                    disabled={false}
                                     onChange={(e) =>
                                         handleInputChange(field.key, e.target.value)
                                     }
@@ -289,45 +352,30 @@ export default function RecipeCalculator({ controllingInputs = {} }) {
                         </div>
                     ))}
 
-                    {/* Divider */}
                     <hr className="my-4" />
 
-                    {/* ---------------------------------------
-            Dependent Fields Section
-        ---------------------------------------- */}
-                    <h4 className="title is-6 mb-2">Dependent Fields (Computed)</h4>
-
+                    {/* Dependent Fields */}
+                    <h4 className="title is-6 mb-2">
+                        Dependent Fields (Computed)
+                    </h4>
                     {dependentFields.map((field) => (
                         <div className="field" key={field.key}>
                             <label className="label">
                                 {field.label}
-                                <span className="tag is-info is-light ml-2">dependent</span>
+                                <span className="tag is-info is-light ml-2">
+                                    dependent
+                                </span>
                             </label>
-
                             <div className="control">
                                 <input
-                                    type={field.type}
                                     className="input"
-                                    value={
-                                        result?.[field.key] !== undefined
-                                            ? result[field.key]
-                                            : ""
-                                    }
-                                    disabled={true}
+                                    type={field.type}
+                                    value={result?.[field.key] ?? field.value ?? ""}
+                                    disabled
                                 />
                             </div>
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* Result Display */}
-            {result && (
-                <div className="notification is-info mt-4">
-                    <h4 className="title is-6">Computed Results</h4>
-                    <pre style={{ whiteSpace: "pre-wrap" }}>
-                        {JSON.stringify(result, null, 2)}
-                    </pre>
                 </div>
             )}
         </div>

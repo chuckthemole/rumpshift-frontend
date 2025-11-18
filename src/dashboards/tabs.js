@@ -17,6 +17,7 @@ import RecipeCalculator from "./recipe_calculator";
 
 export default function Tabs() {
     // Define tabs as an array of objects to simplify state management
+    const recipeInputFields = ["Run Date", "Cases", "Concentrate TDS"];
     const tabs = [
         { key: "home", label: "Home", component: <Home /> },
 
@@ -61,10 +62,10 @@ export default function Tabs() {
                 <RecipeCalculator
                     controllingInputs={
                         {
-                            "Hayes Jammer": ["Run Date", "Cases"],
-                            "Soma Star": ["Run Date", "Cases"],
-                            "Good Boy ETH": ["Run Date", "Cases"],
-                            "Mission Freestyler": ["Run Date", "Cases"]
+                            "Hayes Jammer": recipeInputFields,
+                            "Soma Star": recipeInputFields,
+                            "Good Boy ETH": recipeInputFields,
+                            "Mission Freestyler": recipeInputFields
                         }
                     }
                 />
